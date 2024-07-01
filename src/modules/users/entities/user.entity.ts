@@ -31,10 +31,10 @@ export class User {
   @IsEmail()
   email: string;
 
-  @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Field()
+  @Column()
   @IsOptional()
-  password?: string;
+  password: string;
 
   @Field()
   @CreateDateColumn()

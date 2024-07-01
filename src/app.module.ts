@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
@@ -8,6 +8,8 @@ import { RolesModule } from './modules/roles/roles.module';
 import { join } from 'path';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { RolesService } from './modules/roles/roles.service';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -19,8 +21,13 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
     DatabaseModule,
     UsersModule,
     RolesModule,
+    AuthModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  constructor(private readonly rolesService: RolesService) {}
+
+  async onModuleInit() {
+    await this.rolesService.createDefaultRoles();
+  }
+}
