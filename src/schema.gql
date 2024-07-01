@@ -28,15 +28,28 @@ type User {
   roles: [Role!]!
 }
 
+type Company {
+  id: Int!
+  name: String!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
 type Query {
   users: [User!]!
   user(id: Int!): User!
+  companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
+  company(id: Float!): Company!
 }
 
 type Mutation {
   createUser(createUserInput: CreateUserInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User!
+  createCompany(createCompanyInput: CreateCompanyInput!): Company!
+  updateCompany(id: Float!, updateCompanyInput: UpdateCompanyInput!): Company!
+  deleteCompany(id: Float!): Boolean!
 }
 
 input CreateUserInput {
@@ -48,4 +61,14 @@ input UpdateUserInput {
   """Example field (placeholder)"""
   exampleField: Int
   id: Int!
+}
+
+input CreateCompanyInput {
+  name: String!
+  isActive: Boolean!
+}
+
+input UpdateCompanyInput {
+  name: String!
+  isActive: Boolean!
 }

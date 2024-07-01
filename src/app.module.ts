@@ -8,6 +8,7 @@ import { RolesModule } from './modules/roles/roles.module';
 import { join } from 'path';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { CompanyModule } from './modules/company/company.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
     DatabaseModule,
     UsersModule,
     RolesModule,
+    CompanyModule
   ],
   controllers: [AppController],
   providers: [AppService],
