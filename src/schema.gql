@@ -28,15 +28,32 @@ type User {
   roles: [Role!]!
 }
 
+type BankAccount {
+  id: ID!
+  company_id: Float!
+  name: String!
+  account_number: String!
+  created_at: DateTime!
+  updated_at: DateTime!
+  createdBy: Float!
+  updatedBy: String!
+  isActive: Boolean!
+}
+
 type Query {
   users: [User!]!
   user(id: Int!): User!
+  bankAccounts: [BankAccount!]!
+  bankAccount(id: Int!): BankAccount!
 }
 
 type Mutation {
   createUser(createUserInput: CreateUserInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User!
+  createBankAccount(createBankAccountInput: CreateBankAccountInput!): BankAccount!
+  updateBankAccount(updateBankAccountInput: UpdateBankAccountInput!): BankAccount!
+  removeBankAccount(id: Int!): Boolean!
 }
 
 input CreateUserInput {
@@ -47,5 +64,24 @@ input CreateUserInput {
 input UpdateUserInput {
   """Example field (placeholder)"""
   exampleField: Int
+  id: Int!
+}
+
+input CreateBankAccountInput {
+  company_id: Int!
+  name: String!
+  account_number: String!
+  createdBy: String!
+  updatedBy: String!
+  isActive: Boolean!
+}
+
+input UpdateBankAccountInput {
+  company_id: Int
+  name: String
+  account_number: String
+  createdBy: String
+  updatedBy: String
+  isActive: Boolean
   id: Int!
 }
