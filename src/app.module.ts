@@ -9,6 +9,7 @@ import { join } from 'path';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { BankAccountModule } from './modules/bank-account/bank-account.module';
+import { CompanyModule } from './modules/company/company.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { BankAccountModule } from './modules/bank-account/bank-account.module';
     UsersModule,
     RolesModule,
     BankAccountModule,
+    CompanyModule
   ],
   controllers: [AppController],
   providers: [AppService],

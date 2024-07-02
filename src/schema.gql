@@ -40,11 +40,21 @@ type BankAccount {
   isActive: Boolean!
 }
 
+type Company {
+  id: Int!
+  name: String!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
 type Query {
   users: [User!]!
   user(id: Int!): User!
   bankAccounts: [BankAccount!]!
   bankAccount(id: Int!): BankAccount!
+  companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
+  company(id: Float!): Company!
 }
 
 type Mutation {
@@ -54,6 +64,9 @@ type Mutation {
   createBankAccount(createBankAccountInput: CreateBankAccountInput!): BankAccount!
   updateBankAccount(updateBankAccountInput: UpdateBankAccountInput!): BankAccount!
   removeBankAccount(id: Int!): Boolean!
+  createCompany(createCompanyInput: CreateCompanyInput!): Company!
+  updateCompany(id: Float!, updateCompanyInput: UpdateCompanyInput!): Company!
+  deleteCompany(id: Float!): Boolean!
 }
 
 input CreateUserInput {
@@ -84,4 +97,14 @@ input UpdateBankAccountInput {
   updatedBy: String
   isActive: Boolean
   id: Int!
+}
+
+input CreateCompanyInput {
+  name: String!
+  isActive: Boolean!
+}
+
+input UpdateCompanyInput {
+  name: String!
+  isActive: Boolean!
 }
