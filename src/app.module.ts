@@ -1,6 +1,4 @@
 import { Module, OnModuleInit } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './config/database.module';
 import { UsersModule } from './modules/users/users.module';
@@ -8,8 +6,9 @@ import { RolesModule } from './modules/roles/roles.module';
 import { join } from 'path';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { RolesService } from './modules/roles/roles.service';
 import { AuthModule } from './modules/auth/auth.module';
+import { SeedService } from './seeder/seed.service';
+import { SeedModule } from './seeder/seed.module';
 
 @Module({
   imports: [
@@ -22,12 +21,14 @@ import { AuthModule } from './modules/auth/auth.module';
     UsersModule,
     RolesModule,
     AuthModule,
+    SeedModule,
   ],
 })
 export class AppModule implements OnModuleInit {
-  constructor(private readonly rolesService: RolesService) {}
+  constructor(private readonly seedService: SeedService) {}
 
   async onModuleInit() {
-    await this.rolesService.createDefaultRoles();
+    await this.seedService.createDefaultRoles();
+    await this.seedService.createDefaultAdmin();
   }
 }

@@ -20,7 +20,7 @@ export class AuthService {
   }
 
   async login(user: any): Promise<{ access_token: string }> {
-    const payload = { email: user.email, sub: user.id };
+    const payload = { email: user.email, id: user.id };
     const secretKey = process.env.JWT_SECRET;
 
     if (!secretKey) {

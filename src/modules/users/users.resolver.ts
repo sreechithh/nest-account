@@ -3,6 +3,9 @@ import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../auth/auth.guard';
+import { CurrentUser } from '../auth/decorators/loggin.user';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -31,5 +34,12 @@ export class UsersResolver {
   @Mutation(() => User)
   removeUser(@Args('id', { type: () => Int }) id: number) {
     return this.usersService.remove(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Query(() => String)
+  async me(@CurrentUser() user: any): Promise<string> {
+    console.log(user);
+    return '12345';
   }
 }

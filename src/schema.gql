@@ -35,6 +35,7 @@ type LoginResponse {
 type Query {
   users: [User!]!
   user(id: Float!): User!
+  me: String!
 }
 
 type Mutation {
