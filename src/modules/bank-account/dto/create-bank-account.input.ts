@@ -3,19 +3,13 @@ import { InputType, Field, Int } from '@nestjs/graphql';
 @InputType()
 export class CreateBankAccountInput {
   @Field(() => Int)
-  company_id: number;
+  companyId: number;
 
   @Field()
   name: string;
 
   @Field()
-  account_number: string;
-
-  @Field()
-  createdBy: string;
-
-  @Field()
-  updatedBy: string;
+  accountNumber: string;
 
   @Field()
   isActive: boolean;

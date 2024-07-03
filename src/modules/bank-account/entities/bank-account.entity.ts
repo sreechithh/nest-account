@@ -1,5 +1,6 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, OneToMany, ManyToMany, ManyToOne } from 'typeorm';
+import { Company } from 'src/modules/company/entities/company.entity';
 
 @Entity()
 @ObjectType()
@@ -10,23 +11,23 @@ export class BankAccount {
 
   @Field()
   @Column()
-  company_id: number;
+  companyId: number;
 
   @Field()
   @Column()
   name: string;
 
   @Field()
-  @Column()
-  account_number: string;
+  @Column({ unique: true })
+  accountNumber: string;
 
   @Field()
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @Field()
   @UpdateDateColumn()
-  updated_at: Date;
+  updatedAt: Date;
 
   @Field()
   @Column({ nullable: true })
@@ -39,4 +40,10 @@ export class BankAccount {
   @Field()
   @Column({ default: true })
   isActive: boolean;
+
+  @Field()
+  @ManyToOne(() => Company)
+  @JoinColumn()
+  company: Company;
+
 }

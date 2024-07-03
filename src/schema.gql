@@ -28,24 +28,25 @@ type User {
   roles: [Role!]!
 }
 
-type BankAccount {
-  id: ID!
-  company_id: Float!
-  name: String!
-  account_number: String!
-  created_at: DateTime!
-  updated_at: DateTime!
-  createdBy: Float!
-  updatedBy: String!
-  isActive: Boolean!
-}
-
 type Company {
   id: Int!
   name: String!
   isActive: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+type BankAccount {
+  id: ID!
+  companyId: Float!
+  name: String!
+  accountNumber: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: Float!
+  updatedBy: Float!
+  isActive: Boolean!
+  company: Company!
 }
 
 type Query {
@@ -81,20 +82,16 @@ input UpdateUserInput {
 }
 
 input CreateBankAccountInput {
-  company_id: Int!
+  companyId: Int!
   name: String!
-  account_number: String!
-  createdBy: String!
-  updatedBy: String!
+  accountNumber: String!
   isActive: Boolean!
 }
 
 input UpdateBankAccountInput {
-  company_id: Int
+  companyId: Int
   name: String
-  account_number: String
-  createdBy: String
-  updatedBy: String
+  accountNumber: String
   isActive: Boolean
   id: Int!
 }
