@@ -19,7 +19,7 @@ type User {
   id: ID!
   name: String!
   email: String!
-  password: String
+  password: String!
   createdAt: DateTime!
   updatedAt: DateTime!
   createdBy: String!
@@ -36,8 +36,13 @@ type Company {
   updatedAt: DateTime!
 }
 
+type LoginResponse {
+  access_token: String!
+}
+
 type Query {
   users: [User!]!
+  me: String!
   user(id: Int!): User!
   companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
   company(id: Float!): Company!
@@ -47,6 +52,7 @@ type Mutation {
   createUser(createUserInput: CreateUserInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User!
+  login(email: String!, password: String!): LoginResponse!
   createCompany(createCompanyInput: CreateCompanyInput!): Company!
   updateCompany(id: Float!, updateCompanyInput: UpdateCompanyInput!): Company!
   deleteCompany(id: Float!): Boolean!
