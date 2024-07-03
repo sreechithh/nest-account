@@ -11,9 +11,8 @@ export class CreateExpenseSubCategoryInput {
   @IsNotEmpty()
   expenseCategoryId: number;
 
-  @Field()
-  @IsNotEmpty()
-  isActive: boolean;
+  @Field({nullable:true})
+  isActive?: boolean;
 }
 
 

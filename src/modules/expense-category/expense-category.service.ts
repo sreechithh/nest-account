@@ -13,7 +13,10 @@ export class ExpenseCategoryService {
   ) {}
 
   create(createExpenseCategoryInput: CreateExpenseCategoryInput): Promise<ExpenseCategory> {
-    const expenseCategory = this.expenseCategoryRepository.create(createExpenseCategoryInput);
+    const expenseCategory = this.expenseCategoryRepository.create({
+      ...createExpenseCategoryInput,
+      isActive: createExpenseCategoryInput.isActive ?? true
+    });
     return this.expenseCategoryRepository.save(expenseCategory);
   }
 

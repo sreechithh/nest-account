@@ -24,7 +24,7 @@ export class ExpenseSubCategoryService {
     const expenseSubCategory = this.expenseSubCategoryRepository.create({
       name: createExpenseSubCategoryInput.name,
       expenseCategory: expenseCategory,
-      isActive: createExpenseSubCategoryInput.isActive
+      isActive: createExpenseSubCategoryInput.isActive ?? true
     });
 
     return this.expenseSubCategoryRepository.save(expenseSubCategory);

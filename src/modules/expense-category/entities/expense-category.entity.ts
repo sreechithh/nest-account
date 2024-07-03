@@ -13,8 +13,8 @@ export class ExpenseCategory {
   @Column()
   name: string;
 
-  @Field({defaultValue:true})
-  @Column()
+  @Field()
+  @Column({default:true})
   isActive: boolean;
 
   @Field()
