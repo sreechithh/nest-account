@@ -49,8 +49,13 @@ type BankAccount {
   company: Company!
 }
 
+type LoginResponse {
+  access_token: String!
+}
+
 type Query {
   users: [User!]!
+  me: String!
   user(id: Int!): User!
   bankAccounts: [BankAccount!]!
   bankAccount(id: Int!): BankAccount!
@@ -62,6 +67,7 @@ type Mutation {
   createUser(createUserInput: CreateUserInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User!
+  login(email: String!, password: String!): LoginResponse!
   createBankAccount(createBankAccountInput: CreateBankAccountInput!): BankAccount!
   updateBankAccount(updateBankAccountInput: UpdateBankAccountInput!): BankAccount!
   removeBankAccount(id: Int!): Boolean!

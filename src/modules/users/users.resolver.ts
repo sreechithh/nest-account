@@ -3,8 +3,14 @@ import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../auth/auth.guard';
+import { CurrentUser } from '../auth/decorators/loggin.user';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/decorators/roles';
 
 @Resolver(() => User)
+@UseGuards(AuthGuard, RolesGuard)
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
@@ -19,8 +25,8 @@ export class UsersResolver {
   }
 
   @Query(() => User, { name: 'user' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.usersService.findOne(id);
+  findOne(@Args('id') id: number): Promise<User | null> {
+    return this.usersService.findOne({ where: { id }, relations: ['roles'] });
   }
 
   @Mutation(() => User)
@@ -31,5 +37,12 @@ export class UsersResolver {
   @Mutation(() => User)
   removeUser(@Args('id', { type: () => Int }) id: number) {
     return this.usersService.remove(id);
+  }
+
+  @Roles('admin', 'employee')
+  @Query(() => String)
+  async me(@CurrentUser() user: any): Promise<string> {
+    console.log(user);
+    return '12345';
   }
 }
