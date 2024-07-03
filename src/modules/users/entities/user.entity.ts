@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { IsEmail, IsNotEmpty, IsOptional, Length } from 'class-validator';
 import { Role } from '../../roles/entities/role.entity';
+import * as bcrypt from 'bcrypt';
 
 @Unique(['email'])
 @ObjectType()
@@ -31,10 +32,10 @@ export class User {
   @IsEmail()
   email: string;
 
-  @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Field()
+  @Column()
   @IsOptional()
-  password?: string;
+  password: string;
 
   @Field()
   @CreateDateColumn()
@@ -60,4 +61,12 @@ export class User {
   @ManyToMany(() => Role, (role) => role.users)
   @JoinTable()
   roles: Role[];
+
+  async hashPassword() {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+
+  async comparePassword(attempt: string): Promise<boolean> {
+    return await bcrypt.compare(attempt, this.password);
+  }
 }

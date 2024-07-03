@@ -19,7 +19,7 @@ type User {
   id: ID!
   name: String!
   email: String!
-  password: String
+  password: String!
   createdAt: DateTime!
   updatedAt: DateTime!
   createdBy: String!
@@ -28,15 +28,21 @@ type User {
   roles: [Role!]!
 }
 
+type LoginResponse {
+  access_token: String!
+}
+
 type Query {
   users: [User!]!
-  user(id: Int!): User!
+  user(id: Float!): User!
+  me: String!
 }
 
 type Mutation {
   createUser(createUserInput: CreateUserInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User!
+  login(email: String!, password: String!): LoginResponse!
 }
 
 input CreateUserInput {
