@@ -32,10 +32,31 @@ type LoginResponse {
   access_token: String!
 }
 
+type ExpenseSubCategory {
+  id: Int!
+  name: String!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  expenseCategory: ExpenseCategory!
+}
+
+type ExpenseCategory {
+  id: Int!
+  name: String!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
 type Query {
   users: [User!]!
   user(id: Float!): User!
   me: String!
+  expenseCategories: [ExpenseCategory!]!
+  expenseCategory(id: Int!): ExpenseCategory!
+  expenseSubCategories: [ExpenseSubCategory!]!
+  expenseSubCategory(id: Int!): ExpenseSubCategory!
 }
 
 type Mutation {
@@ -43,6 +64,12 @@ type Mutation {
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User!
   login(email: String!, password: String!): LoginResponse!
+  createExpenseCategory(createExpenseCategoryInput: CreateExpenseCategoryInput!): ExpenseCategory!
+  updateExpenseCategory(id: Int!, updateExpenseCategoryInput: UpdateExpenseCategoryInput!): ExpenseCategory!
+  removeExpenseCategory(id: Int!): ExpenseCategory!
+  createExpenseSubCategory(createExpenseSubCategoryInput: CreateExpenseSubCategoryInput!): ExpenseSubCategory!
+  updateExpenseSubCategory(updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput!): ExpenseSubCategory!
+  removeExpenseSubCategory(id: Int!): ExpenseSubCategory!
 }
 
 input CreateUserInput {
@@ -53,5 +80,28 @@ input CreateUserInput {
 input UpdateUserInput {
   """Example field (placeholder)"""
   exampleField: Int
+  id: Int!
+}
+
+input CreateExpenseCategoryInput {
+  name: String!
+  isActive: Boolean
+}
+
+input UpdateExpenseCategoryInput {
+  name: String
+  isActive: Boolean
+}
+
+input CreateExpenseSubCategoryInput {
+  name: String!
+  expenseCategoryId: Int!
+  isActive: Boolean!
+}
+
+input UpdateExpenseSubCategoryInput {
+  name: String
+  expenseCategoryId: Int
+  isActive: Boolean
   id: Int!
 }

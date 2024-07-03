@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ExpenseSubCategory } from './expense-sub-category.entity';
-import { ExpenseCategory } from '../expense-category/expense-category.entity';
+import { ExpenseSubCategory } from './entities/expense-sub-category.entity';
+import { ExpenseCategory } from '../expense-category/entities/expense-category.entity';
 import { CreateExpenseSubCategoryInput } from './dto/create-expense-sub-category.input';
 import { UpdateExpenseSubCategoryInput } from './dto/update-expense-sub-category.input';
 

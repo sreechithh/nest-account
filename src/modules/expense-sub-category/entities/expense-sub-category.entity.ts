@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { ExpenseCategory } from '../expense-category/expense-category.entity';
+import { ExpenseCategory } from '../../expense-category/entities/expense-category.entity';
 
 @ObjectType()
 @Entity()

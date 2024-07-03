@@ -1,12 +1,12 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { ExpenseSubCategoryService } from './expense-sub-category.service';
-import { ExpenseSubCategory } from './expense-sub-category.entity';
+import { ExpenseSubCategory } from './entities/expense-sub-category.entity';
 import { CreateExpenseSubCategoryInput } from './dto/create-expense-sub-category.input';
 import { UpdateExpenseSubCategoryInput } from './dto/update-expense-sub-category.input';
 
 @Resolver(() => ExpenseSubCategory)
 export class ExpenseSubCategoryResolver {
-  constructor(private readonly expenseSubCategoryService: ExpenseSubCategoryService) {}
+  constructor(private expenseSubCategoryService: ExpenseSubCategoryService) {}
 
   @Mutation(() => ExpenseSubCategory)
   createExpenseSubCategory(
