@@ -10,19 +10,6 @@ export class RolesService {
     private roleRepository: Repository<Role>,
   ) {}
 
-  async createDefaultRoles() {
-    const roles = ['admin', 'employee', 'accountant'];
-    for (const roleName of roles) {
-      const role = await this.roleRepository.findOne({
-        where: { name: roleName },
-      });
-      if (!role) {
-        const newRole = this.roleRepository.create({ name: roleName });
-        await this.roleRepository.save(newRole);
-      }
-    }
-  }
-
   async findAll(): Promise<Role[]> {
     return this.roleRepository.find();
   }
