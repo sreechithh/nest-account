@@ -6,6 +6,7 @@ import { RolesModule } from './modules/roles/roles.module';
 import { join } from 'path';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { BankAccountModule } from './modules/bank-account/bank-account.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SeedService } from './seeder/seed.service';
 import { SeedModule } from './seeder/seed.module';
@@ -21,6 +22,7 @@ import { CompanyModule } from './modules/company/company.module';
     DatabaseModule,
     UsersModule,
     RolesModule,
+    BankAccountModule,
     AuthModule,
     SeedModule,
     CompanyModule
