@@ -19,7 +19,7 @@ type User {
   id: ID!
   name: String!
   email: String!
-  password: String
+  password: String!
   createdAt: DateTime!
   updatedAt: DateTime!
   createdBy: String!
@@ -32,8 +32,10 @@ type Company {
   id: Int!
   name: String!
   isActive: Boolean!
+  salaryDate: Float!
   createdAt: DateTime!
   updatedAt: DateTime!
+  bankAccounts: [BankAccount!]!
 }
 
 type BankAccount {
@@ -55,25 +57,25 @@ type LoginResponse {
 
 type Query {
   users: [User!]!
-  me: String!
   user(id: Int!): User!
+  me: String!
   bankAccounts: [BankAccount!]!
   bankAccount(id: Int!): BankAccount!
   companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
-  company(id: Float!): Company!
+  company(id: Int!): Company!
 }
 
 type Mutation {
   createUser(createUserInput: CreateUserInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User!
-  login(email: String!, password: String!): LoginResponse!
   createBankAccount(createBankAccountInput: CreateBankAccountInput!): BankAccount!
   updateBankAccount(updateBankAccountInput: UpdateBankAccountInput!): BankAccount!
   removeBankAccount(id: Int!): Boolean!
+  login(email: String!, password: String!): LoginResponse!
   createCompany(createCompanyInput: CreateCompanyInput!): Company!
-  updateCompany(id: Float!, updateCompanyInput: UpdateCompanyInput!): Company!
-  deleteCompany(id: Float!): Boolean!
+  updateCompany(id: Int!, updateCompanyInput: UpdateCompanyInput!): Company!
+  deleteCompany(id: Int!): Boolean!
 }
 
 input CreateUserInput {
@@ -91,23 +93,24 @@ input CreateBankAccountInput {
   companyId: Int!
   name: String!
   accountNumber: String!
-  isActive: Boolean!
+  bankBalance: Float!
 }
 
 input UpdateBankAccountInput {
   companyId: Int
   name: String
   accountNumber: String
-  isActive: Boolean
+  bankBalance: Float
   id: Int!
 }
 
 input CreateCompanyInput {
   name: String!
-  isActive: Boolean!
+  salaryDate: Float!
 }
 
 input UpdateCompanyInput {
   name: String!
+  salaryDate: Float!
   isActive: Boolean!
 }

@@ -9,6 +9,12 @@ import { IsNotEmpty, Length } from 'class-validator';
 import { User } from '../../users/entities/user.entity';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 
+export const UserRoles = {
+  ADMIN: 'admin',
+  ACCOUNTANT: 'accountant',
+  EMPLOYEE: 'employee',
+};
+
 @Entity()
 @ObjectType()
 export class Role {

@@ -12,5 +12,5 @@ export class CreateBankAccountInput {
   accountNumber: string;
 
   @Field()
-  isActive: boolean;
+  bankBalance: number;
 }

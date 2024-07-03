@@ -12,7 +12,11 @@ export class CompanyService {
     private companyRepository: Repository<Company>,
   ) {}
 
-  findAll(pageSize: number = 10, pageNumber: number = 1, searchQuery?: string): Promise<Company[]> {
+  findAll(
+    pageSize: number = 10,
+    pageNumber: number = 1,
+    searchQuery?: string,
+  ): Promise<Company[]> {
     const options: FindManyOptions<Company> = {
       take: pageSize,
       skip: (pageNumber - 1) * pageSize,
@@ -23,7 +27,7 @@ export class CompanyService {
   findOne(id: number): Promise<Company | null> {
     return this.companyRepository.findOneBy({ id });
   }
-  
+
   create(createCompanyInput: CreateCompanyInput): Promise<Company> {
     const newCompany = this.companyRepository.create({
       ...createCompanyInput,
@@ -33,9 +37,12 @@ export class CompanyService {
     return this.companyRepository.save(newCompany);
   }
 
-  async update(id: number, updateCompanyInput: UpdateCompanyInput): Promise<Company> {
+  async update(
+    id: number,
+    updateCompanyInput: UpdateCompanyInput,
+  ): Promise<Company> {
     const existingCompany = await this.companyRepository.findOneBy({ id });
-  
+
     if (!existingCompany) {
       throw new NotFoundException(`Company with ID ${id} not found`);
     }

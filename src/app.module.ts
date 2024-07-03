@@ -25,7 +25,7 @@ import { CompanyModule } from './modules/company/company.module';
     BankAccountModule,
     AuthModule,
     SeedModule,
-    CompanyModule
+    CompanyModule,
   ],
 })
 export class AppModule implements OnModuleInit {
