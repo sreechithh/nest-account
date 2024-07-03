@@ -6,8 +6,11 @@ import { UpdateUserInput } from './dto/update-user.input';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/decorators/loggin.user';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/decorators/roles';
 
 @Resolver(() => User)
+@UseGuards(AuthGuard, RolesGuard)
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
@@ -36,7 +39,7 @@ export class UsersResolver {
     return this.usersService.remove(id);
   }
 
-  @UseGuards(AuthGuard)
+  @Roles('admin', 'employee')
   @Query(() => String)
   async me(@CurrentUser() user: any): Promise<string> {
     console.log(user);
