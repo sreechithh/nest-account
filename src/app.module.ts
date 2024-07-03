@@ -12,7 +12,6 @@ import { SeedModule } from './seeder/seed.module';
 import { ExpenseCategoryModule } from './modules/expense-category/expense-category.module';
 import { ExpenseSubCategoryModule } from './modules/expense-sub-category/expense-sub-category.module';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),

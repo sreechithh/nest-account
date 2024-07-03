@@ -9,8 +9,9 @@ export class CreateExpenseCategoryInput {
   name: string;
 
 
-  @Field({ nullable: true })
-  isActive?: boolean;
+  @Field()
+  @IsNotEmpty()
+  isActive: boolean;
 
 }
 

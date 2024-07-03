@@ -3,8 +3,12 @@ import { ExpenseCategoryService } from './expense-category.service';
 import { ExpenseCategory } from './entities/expense-category.entity';
 import { CreateExpenseCategoryInput } from './dto/create-expense-category.input';
 import { UpdateExpenseCategoryInput } from './dto/update-expense-category.input';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
 
 @Resolver(() => ExpenseCategory)
+@UseGuards(AuthGuard, RolesGuard)
 export class ExpenseCategoryResolver {
   constructor(private readonly expenseCategoryService: ExpenseCategoryService) {}
 

@@ -85,7 +85,7 @@ input UpdateUserInput {
 
 input CreateExpenseCategoryInput {
   name: String!
-  isActive: Boolean
+  isActive: Boolean!
 }
 
 input UpdateExpenseCategoryInput {
