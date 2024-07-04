@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
 import { Company } from './entities/company.entity';
@@ -55,7 +59,18 @@ export class CompanyService {
     return await this.companyRepository.save(updatedCompany);
   }
 
-  async remove(id: number): Promise<void> {
-    await this.companyRepository.delete(id);
+  async remove(id: number): Promise<boolean> {
+    const company = await this.companyRepository.findOne({
+      where: { id },
+      relations: ['bankAccounts'],
+    });
+
+    if (company?.bankAccounts && company.bankAccounts.length > 0) {
+      throw new ConflictException(
+        `Company with ID ${id} has bank accounts and cannot be deleted`,
+      );
+    }
+    ///
+    return await this.companyRepository.delete(id);
   }
 }

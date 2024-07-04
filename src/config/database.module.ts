@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { IsUniqueConstraint } from '../modules/common/decorators/unique.validator';
 
 @Module({
   imports: [
@@ -23,5 +24,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
     }),
   ],
+  providers: [IsUniqueConstraint],
+  exports: [IsUniqueConstraint],
 })
 export class DatabaseModule {}

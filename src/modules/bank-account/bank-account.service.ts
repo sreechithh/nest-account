@@ -5,6 +5,7 @@ import { BankAccount } from './entities/bank-account.entity';
 import { CreateBankAccountInput } from './dto/create-bank-account.input';
 import { UpdateBankAccountInput } from './dto/update-bank-account.input';
 import { Company } from '../company/entities/company.entity';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class BankAccountService {
@@ -15,15 +16,17 @@ export class BankAccountService {
     private readonly companyRepository: Repository<Company>,
   ) {}
 
-  async create(createBankAccountInput: CreateBankAccountInput) {
+  async create(user: User, createBankAccountInput: CreateBankAccountInput) {
     const { name, companyId, accountNumber } = createBankAccountInput;
-    await this.companyRepository.findOneByOrFail({
+    const company = await this.companyRepository.findOneByOrFail({
       id: companyId,
     });
     const bankAccount = this.bankAccountRepository.create({
       name,
       accountNumber,
-      companyId,
+      company,
+      createdBy: user.id,
+      updatedBy: user.id,
     });
 
     return this.bankAccountRepository.save(bankAccount);
@@ -42,17 +45,25 @@ export class BankAccountService {
   }
 
   async update(
-    id: number,
+    user: User,
     updateBankAccountInput: UpdateBankAccountInput,
   ): Promise<BankAccount | null> {
-    const bankAccount = await this.bankAccountRepository.findOneBy({ id });
+    const { id, accountNumber, companyId, name } = updateBankAccountInput;
+    const company = await this.companyRepository.findOneByOrFail({
+      id: companyId,
+    });
+
+    const bankAccount = await this.bankAccountRepository.preload({
+      id,
+      accountNumber,
+      company,
+      name,
+      updatedBy: user.id,
+    });
 
     if (!bankAccount) {
       throw new NotFoundException(`BankAccount with ID ${id} not found`);
     }
-
-    Object.assign(bankAccount, updateBankAccountInput);
-
     return this.bankAccountRepository.save(bankAccount);
   }
 

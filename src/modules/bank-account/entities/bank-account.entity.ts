@@ -5,7 +5,6 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  JoinColumn,
   ManyToOne,
   Unique,
 } from 'typeorm';
@@ -18,10 +17,6 @@ export class BankAccount {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Field()
-  @Column()
-  companyId: number;
 
   @Field()
   @Column()
@@ -53,6 +48,5 @@ export class BankAccount {
 
   @Field()
   @ManyToOne(() => Company)
-  @JoinColumn()
   company: Company;
 }

@@ -8,6 +8,8 @@ import { AuthGuard } from '../auth/auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles';
 import { UserRoles } from '../roles/entities/role.entity';
+import { CurrentUser } from '../auth/decorators/loggin.user';
+import { User } from '../users/entities/user.entity';
 
 @Resolver(() => BankAccount)
 @UseGuards(AuthGuard, RolesGuard)
@@ -17,10 +19,11 @@ export class BankAccountResolver {
   @Mutation(() => BankAccount)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   createBankAccount(
+    @CurrentUser() user: User,
     @Args('createBankAccountInput')
     createBankAccountInput: CreateBankAccountInput,
-  ) {
-    return this.bankAccountService.create(createBankAccountInput);
+  ): Promise<BankAccount> {
+    return this.bankAccountService.create(user, createBankAccountInput);
   }
 
   @Query(() => [BankAccount], { name: 'bankAccounts' })
@@ -38,13 +41,11 @@ export class BankAccountResolver {
   @Mutation(() => BankAccount)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   updateBankAccount(
+    @CurrentUser() user: User,
     @Args('updateBankAccountInput')
     updateBankAccountInput: UpdateBankAccountInput,
   ) {
-    return this.bankAccountService.update(
-      updateBankAccountInput.id,
-      updateBankAccountInput,
-    );
+    return this.bankAccountService.update(user, updateBankAccountInput);
   }
 
   @Mutation(() => Boolean)

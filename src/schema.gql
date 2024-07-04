@@ -40,7 +40,6 @@ type Company {
 
 type BankAccount {
   id: ID!
-  companyId: Float!
   name: String!
   accountNumber: String!
   createdAt: DateTime!
@@ -97,11 +96,10 @@ input CreateBankAccountInput {
 }
 
 input UpdateBankAccountInput {
-  companyId: Int
-  name: String
-  accountNumber: String
-  bankBalance: Float
   id: Int!
+  companyId: Float!
+  name: String!
+  accountNumber: String!
 }
 
 input CreateCompanyInput {
