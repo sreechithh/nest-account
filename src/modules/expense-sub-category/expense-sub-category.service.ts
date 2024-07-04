@@ -24,7 +24,7 @@ export class ExpenseSubCategoryService {
     const expenseSubCategory = this.expenseSubCategoryRepository.create({
       name: createExpenseSubCategoryInput.name,
       expenseCategory: expenseCategory,
-      isActive: createExpenseSubCategoryInput.isActive ?? true
+      isActive: createExpenseSubCategoryInput.isActive
     });
 
     return this.expenseSubCategoryRepository.save(expenseSubCategory);
@@ -35,31 +35,20 @@ export class ExpenseSubCategoryService {
   }
 
   async findOne(id: number): Promise<ExpenseSubCategory> {
-    const expenseSubCategory = await this.expenseSubCategoryRepository.findOne({ where: { id }, relations: ['expenseCategory'] });
-    if (!expenseSubCategory) {
-      throw new NotFoundException(`ExpenseSubCategory with ID ${id} not found`);
-    }
-    return expenseSubCategory;
+    return  await this.expenseSubCategoryRepository.findOneOrFail({ where: { id }, relations: ['expenseCategory'] });
   }
 
   async update(updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput): Promise<ExpenseSubCategory> {
     const { id, expenseCategoryId, ...updateData } = updateExpenseSubCategoryInput;
 
-    const expenseSubCategory = await this.expenseSubCategoryRepository.findOne({ where: { id } });
-    if (!expenseSubCategory) {
-      throw new NotFoundException(`ExpenseSubCategory with ID ${id} not found`);
-    }
+    const expenseSubCategory = await this.expenseSubCategoryRepository.findOneOrFail({ where: { id } });
 
     if (expenseCategoryId) {
-      const expenseCategory = await this.expenseCategoryRepository.findOne({ where: { id: expenseCategoryId } });
-      if (!expenseCategory) {
-        throw new NotFoundException(`ExpenseCategory with ID ${expenseCategoryId} not found`);
-      }
+      const expenseCategory = await this.expenseCategoryRepository.findOneOrFail({ where: { id: expenseCategoryId } });
       expenseSubCategory.expenseCategory = expenseCategory;
     }
 
     Object.assign(expenseSubCategory, updateData);
-
     return this.expenseSubCategoryRepository.save(expenseSubCategory);
   }
   async remove(id: number): Promise<ExpenseSubCategory> {

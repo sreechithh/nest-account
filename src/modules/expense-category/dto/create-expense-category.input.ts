@@ -9,7 +9,7 @@ export class CreateExpenseCategoryInput {
   name: string;
 
 
-  @Field({nullable:true})
+  @Field({ defaultValue: true, nullable: true })
   isActive?: boolean;
 
 }

@@ -15,7 +15,7 @@ export class ExpenseCategoryService {
   create(createExpenseCategoryInput: CreateExpenseCategoryInput): Promise<ExpenseCategory> {
     const expenseCategory = this.expenseCategoryRepository.create({
       ...createExpenseCategoryInput,
-      isActive: createExpenseCategoryInput.isActive ?? true
+      isActive: createExpenseCategoryInput.isActive
     });
     return this.expenseCategoryRepository.save(expenseCategory);
   }
@@ -25,11 +25,8 @@ export class ExpenseCategoryService {
   }
 
   async findOne(id: number): Promise<ExpenseCategory> {
-    const expenseCategory = await this.expenseCategoryRepository.findOneBy({ id });
-    if (!expenseCategory) {
-      throw new NotFoundException(`ExpenseCategory with ID ${id} not found`);
-    }
-    return expenseCategory;
+   return await this.expenseCategoryRepository.findOneOrFail({where: { id } });
+
   }
 
   async update(id: number, updateExpenseCategoryInput: UpdateExpenseCategoryInput): Promise<ExpenseCategory> {
