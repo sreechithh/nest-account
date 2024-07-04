@@ -6,9 +6,11 @@ import { UpdateExpenseCategoryInput } from './dto/update-expense-category.input'
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/decorators/roles';
 
 @Resolver(() => ExpenseCategory)
 @UseGuards(AuthGuard, RolesGuard)
+@Roles('admin', 'accountant')
 export class ExpenseCategoryResolver {
   constructor(private readonly expenseCategoryService: ExpenseCategoryService) {}
 

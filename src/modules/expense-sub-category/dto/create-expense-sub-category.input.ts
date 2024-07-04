@@ -15,4 +15,3 @@ export class CreateExpenseSubCategoryInput {
   isActive?: boolean;
 }
 
-
