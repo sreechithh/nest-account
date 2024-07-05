@@ -7,8 +7,10 @@ import {
   UpdateDateColumn,
   ManyToOne,
   Unique,
+  OneToMany,
 } from 'typeorm';
 import { Company } from 'src/modules/company/entities/company.entity';
+import { BankTransaction } from '../../bank-transactions/entities/bank-transaction.entity';
 
 @Unique(['accountNumber'])
 @Entity()
@@ -47,6 +49,13 @@ export class BankAccount {
   isActive: boolean;
 
   @Field()
+  bankBalance: number;
+
+  @Field()
   @ManyToOne(() => Company)
   company: Company;
+
+  @OneToMany(() => BankTransaction, (transaction) => transaction.bankAccount)
+  @Field(() => [BankTransaction])
+  bankTransactions?: BankTransaction[];
 }

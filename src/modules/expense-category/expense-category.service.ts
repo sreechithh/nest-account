@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException , ConflictException} from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ExpenseCategory } from './entities/expense-category.entity';
@@ -12,24 +16,32 @@ export class ExpenseCategoryService {
     private expenseCategoryRepository: Repository<ExpenseCategory>,
   ) {}
 
-  create(createExpenseCategoryInput: CreateExpenseCategoryInput): Promise<ExpenseCategory> {
+  create(
+    createExpenseCategoryInput: CreateExpenseCategoryInput,
+  ): Promise<ExpenseCategory> {
     const expenseCategory = this.expenseCategoryRepository.create({
       ...createExpenseCategoryInput,
-      isActive: createExpenseCategoryInput.isActive
+      isActive: createExpenseCategoryInput.isActive,
     });
     return this.expenseCategoryRepository.save(expenseCategory);
   }
 
   findAll(): Promise<ExpenseCategory[]> {
-    return this.expenseCategoryRepository.find({ relations: ['subCategories'] });
+    return this.expenseCategoryRepository.find({
+      relations: ['subCategories'],
+    });
   }
 
   async findOne(id: number): Promise<ExpenseCategory> {
-   return await this.expenseCategoryRepository.findOneOrFail({where: { id } });
-
+    return await this.expenseCategoryRepository.findOneOrFail({
+      where: { id },
+    });
   }
 
-  async update(id: number, updateExpenseCategoryInput: UpdateExpenseCategoryInput): Promise<ExpenseCategory> {
+  async update(
+    id: number,
+    updateExpenseCategoryInput: UpdateExpenseCategoryInput,
+  ): Promise<ExpenseCategory> {
     const expenseCategory = await this.expenseCategoryRepository.preload({
       id,
       ...updateExpenseCategoryInput,
@@ -41,12 +53,16 @@ export class ExpenseCategoryService {
   }
   async remove(id: number): Promise<ExpenseCategory> {
     const expenseCategory = await this.findOne(id);
-    if (expenseCategory.subCategories && expenseCategory.subCategories.length > 0) {
-      throw new ConflictException(`ExpenseCategory with ID ${id} has subcategories and cannot be deleted`);
+    if (
+      expenseCategory.subCategories &&
+      expenseCategory.subCategories.length > 0
+    ) {
+      throw new ConflictException(
+        `ExpenseCategory with ID ${id} has subcategories and cannot be deleted`,
+      );
     }
     await this.expenseCategoryRepository.remove(expenseCategory);
 
     return { ...expenseCategory, id };
   }
-
 }
