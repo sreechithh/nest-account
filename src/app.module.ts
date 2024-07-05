@@ -12,6 +12,8 @@ import { SeedService } from './seeder/seed.service';
 import { SeedModule } from './seeder/seed.module';
 import { CompanyModule } from './modules/company/company.module';
 import { IsUniqueConstraint } from './modules/common/decorators/unique.validator';
+import { ExpenseCategoryModule } from './modules/expense-category/expense-category.module';
+import { ExpenseSubCategoryModule } from './modules/expense-sub-category/expense-sub-category.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { IsUniqueConstraint } from './modules/common/decorators/unique.validator
     BankAccountModule,
     AuthModule,
     SeedModule,
+    ExpenseCategoryModule,
+    ExpenseSubCategoryModule,
     CompanyModule,
   ],
   providers: [IsUniqueConstraint],

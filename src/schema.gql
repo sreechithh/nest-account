@@ -54,6 +54,23 @@ type LoginResponse {
   access_token: String!
 }
 
+type ExpenseSubCategory {
+  id: Int!
+  name: String!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  expenseCategory: ExpenseCategory!
+}
+
+type ExpenseCategory {
+  id: Int!
+  name: String!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
 type Query {
   users: [User!]!
   user(id: Int!): User!
@@ -62,6 +79,10 @@ type Query {
   bankAccount(id: Int!): BankAccount!
   companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
   company(id: Int!): Company!
+  expenseCategories: [ExpenseCategory!]!
+  expenseCategory(id: Int!): ExpenseCategory!
+  expenseSubCategories: [ExpenseSubCategory!]!
+  expenseSubCategory(id: Int!): ExpenseSubCategory!
 }
 
 type Mutation {
@@ -75,6 +96,12 @@ type Mutation {
   createCompany(createCompanyInput: CreateCompanyInput!): Company!
   updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
   deleteCompany(id: Int!): Boolean!
+  createExpenseCategory(createExpenseCategoryInput: CreateExpenseCategoryInput!): ExpenseCategory!
+  updateExpenseCategory(id: Int!, updateExpenseCategoryInput: UpdateExpenseCategoryInput!): ExpenseCategory!
+  removeExpenseCategory(id: Int!): ExpenseCategory!
+  createExpenseSubCategory(createExpenseSubCategoryInput: CreateExpenseSubCategoryInput!): ExpenseSubCategory!
+  updateExpenseSubCategory(updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput!): ExpenseSubCategory!
+  removeExpenseSubCategory(id: Int!): ExpenseSubCategory!
 }
 
 input CreateUserInput {
@@ -112,4 +139,27 @@ input UpdateCompanyInput {
   name: String!
   salaryDate: Float!
   isActive: Boolean!
+}
+
+input CreateExpenseCategoryInput {
+  name: String!
+  isActive: Boolean
+}
+
+input UpdateExpenseCategoryInput {
+  name: String
+  isActive: Boolean
+}
+
+input CreateExpenseSubCategoryInput {
+  name: String!
+  expenseCategoryId: Int!
+  isActive: Boolean!
+}
+
+input UpdateExpenseSubCategoryInput {
+  name: String
+  expenseCategoryId: Int
+  isActive: Boolean
+  id: Int!
 }
