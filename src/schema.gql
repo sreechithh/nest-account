@@ -73,7 +73,7 @@ type Mutation {
   removeBankAccount(id: Int!): Boolean!
   login(email: String!, password: String!): LoginResponse!
   createCompany(createCompanyInput: CreateCompanyInput!): Company!
-  updateCompany(id: Int!, updateCompanyInput: UpdateCompanyInput!): Company!
+  updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
   deleteCompany(id: Int!): Boolean!
 }
 
@@ -108,6 +108,7 @@ input CreateCompanyInput {
 }
 
 input UpdateCompanyInput {
+  id: ID!
   name: String!
   salaryDate: Float!
   isActive: Boolean!

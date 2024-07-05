@@ -35,16 +35,12 @@ export class CompanyService {
   create(createCompanyInput: CreateCompanyInput): Promise<Company> {
     const newCompany = this.companyRepository.create({
       ...createCompanyInput,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
     return this.companyRepository.save(newCompany);
   }
 
-  async update(
-    id: number,
-    updateCompanyInput: UpdateCompanyInput,
-  ): Promise<Company> {
+  async update(updateCompanyInput: UpdateCompanyInput): Promise<Company> {
+    const { id } = updateCompanyInput;
     const existingCompany = await this.companyRepository.findOneBy({ id });
 
     if (!existingCompany) {
@@ -53,24 +49,26 @@ export class CompanyService {
 
     const updatedCompany = this.companyRepository.merge(existingCompany, {
       ...updateCompanyInput,
-      updatedAt: new Date(),
     });
 
     return await this.companyRepository.save(updatedCompany);
   }
 
-  async remove(id: number): Promise<boolean> {
+  async remove(id: number): Promise<Company> {
     const company = await this.companyRepository.findOne({
       where: { id },
       relations: ['bankAccounts'],
     });
+
+    if (!company) {
+      throw new ConflictException(`Company with ID ${id} does not exist`);
+    }
 
     if (company?.bankAccounts && company.bankAccounts.length > 0) {
       throw new ConflictException(
         `Company with ID ${id} has bank accounts and cannot be deleted`,
       );
     }
-    ///
-    return await this.companyRepository.delete(id);
+    return await this.companyRepository.remove(company);
   }
 }

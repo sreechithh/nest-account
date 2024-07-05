@@ -44,11 +44,10 @@ export class CompanyResolver {
   @Mutation(() => Company)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   async updateCompany(
-    @Args('id', { type: () => Int }) id: number,
     @Args('updateCompanyInput', ValidationPipe)
     updateCompanyInput: UpdateCompanyInput,
   ): Promise<Company> {
-    return this.companyService.update(id, updateCompanyInput);
+    return this.companyService.update(updateCompanyInput);
   }
 
   @Mutation(() => Boolean)
