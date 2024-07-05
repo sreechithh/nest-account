@@ -9,6 +9,8 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { AuthModule } from './modules/auth/auth.module';
 import { SeedService } from './seeder/seed.service';
 import { SeedModule } from './seeder/seed.module';
+import { ExpenseCategoryModule } from './modules/expense-category/expense-category.module';
+import { ExpenseSubCategoryModule } from './modules/expense-sub-category/expense-sub-category.module';
 
 @Module({
   imports: [
@@ -22,7 +24,9 @@ import { SeedModule } from './seeder/seed.module';
     RolesModule,
     AuthModule,
     SeedModule,
-  ],
+    ExpenseCategoryModule,
+    ExpenseSubCategoryModule,
+  ]
 })
 export class AppModule implements OnModuleInit {
   constructor(private readonly seedService: SeedService) {}
