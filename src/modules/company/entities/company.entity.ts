@@ -1,10 +1,18 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
+import { BankAccount } from '../../bank-account/entities/bank-account.entity';
 
 @Entity()
 @ObjectType()
 export class Company {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('increment', { type: 'int' })
   @Field(() => Int)
   id: number;
 
@@ -16,11 +24,19 @@ export class Company {
   @Field()
   isActive: boolean;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @Column()
+  @Field()
+  salaryDate: number;
+
+  @CreateDateColumn()
   @Field()
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn()
   @Field()
   updatedAt: Date;
+
+  @Field(() => [BankAccount])
+  @OneToMany(() => BankAccount, (bankAccounts) => bankAccounts.company)
+  bankAccounts?: BankAccount[];
 }

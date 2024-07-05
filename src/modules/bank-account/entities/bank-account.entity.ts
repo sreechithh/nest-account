@@ -1,17 +1,22 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, OneToMany, ManyToMany, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  Unique,
+} from 'typeorm';
 import { Company } from 'src/modules/company/entities/company.entity';
 
+@Unique(['accountNumber'])
 @Entity()
 @ObjectType()
 export class BankAccount {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Field()
-  @Column()
-  companyId: number;
 
   @Field()
   @Column()
@@ -43,7 +48,5 @@ export class BankAccount {
 
   @Field()
   @ManyToOne(() => Company)
-  @JoinColumn()
   company: Company;
-
 }

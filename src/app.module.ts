@@ -11,6 +11,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { SeedService } from './seeder/seed.service';
 import { SeedModule } from './seeder/seed.module';
 import { CompanyModule } from './modules/company/company.module';
+import { IsUniqueConstraint } from './modules/common/decorators/unique.validator';
 
 @Module({
   imports: [
@@ -25,8 +26,9 @@ import { CompanyModule } from './modules/company/company.module';
     BankAccountModule,
     AuthModule,
     SeedModule,
-    CompanyModule
+    CompanyModule,
   ],
+  providers: [IsUniqueConstraint],
 })
 export class AppModule implements OnModuleInit {
   constructor(private readonly seedService: SeedService) {}

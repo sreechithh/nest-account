@@ -25,7 +25,7 @@ export class UsersResolver {
   }
 
   @Query(() => User, { name: 'user' })
-  findOne(@Args('id') id: number): Promise<User | null> {
+  findOne(@Args('id', { type: () => Int }) id: number): Promise<User | null> {
     return this.usersService.findOne({ where: { id }, relations: ['roles'] });
   }
 

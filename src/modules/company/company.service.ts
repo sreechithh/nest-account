@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
 import { Company } from './entities/company.entity';
@@ -12,7 +16,11 @@ export class CompanyService {
     private companyRepository: Repository<Company>,
   ) {}
 
-  findAll(pageSize: number = 10, pageNumber: number = 1, searchQuery?: string): Promise<Company[]> {
+  findAll(
+    pageSize: number = 10,
+    pageNumber: number = 1,
+    searchQuery?: string,
+  ): Promise<Company[]> {
     const options: FindManyOptions<Company> = {
       take: pageSize,
       skip: (pageNumber - 1) * pageSize,
@@ -23,32 +31,44 @@ export class CompanyService {
   findOne(id: number): Promise<Company | null> {
     return this.companyRepository.findOneBy({ id });
   }
-  
+
   create(createCompanyInput: CreateCompanyInput): Promise<Company> {
     const newCompany = this.companyRepository.create({
       ...createCompanyInput,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
     return this.companyRepository.save(newCompany);
   }
 
-  async update(id: number, updateCompanyInput: UpdateCompanyInput): Promise<Company> {
+  async update(updateCompanyInput: UpdateCompanyInput): Promise<Company> {
+    const { id } = updateCompanyInput;
     const existingCompany = await this.companyRepository.findOneBy({ id });
-  
+
     if (!existingCompany) {
       throw new NotFoundException(`Company with ID ${id} not found`);
     }
 
     const updatedCompany = this.companyRepository.merge(existingCompany, {
       ...updateCompanyInput,
-      updatedAt: new Date(),
     });
 
     return await this.companyRepository.save(updatedCompany);
   }
 
-  async remove(id: number): Promise<void> {
-    await this.companyRepository.delete(id);
+  async remove(id: number): Promise<Company> {
+    const company = await this.companyRepository.findOne({
+      where: { id },
+      relations: ['bankAccounts'],
+    });
+
+    if (!company) {
+      throw new ConflictException(`Company with ID ${id} does not exist`);
+    }
+
+    if (company?.bankAccounts && company.bankAccounts.length > 0) {
+      throw new ConflictException(
+        `Company with ID ${id} has bank accounts and cannot be deleted`,
+      );
+    }
+    return await this.companyRepository.remove(company);
   }
 }

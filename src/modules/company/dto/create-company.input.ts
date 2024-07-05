@@ -1,6 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
-import { Unique } from 'typeorm';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 @InputType()
 export class CreateCompanyInput {
@@ -10,6 +9,5 @@ export class CreateCompanyInput {
   name: string;
 
   @Field()
-  @IsBoolean()
-  isActive: boolean;
+  salaryDate: number;
 }
