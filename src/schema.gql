@@ -28,6 +28,28 @@ type User {
   roles: [Role!]!
 }
 
+type Company {
+  id: Int!
+  name: String!
+  isActive: Boolean!
+  salaryDate: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  bankAccounts: [BankAccount!]!
+}
+
+type BankAccount {
+  id: ID!
+  name: String!
+  accountNumber: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: Float!
+  updatedBy: Float!
+  isActive: Boolean!
+  company: Company!
+}
+
 type LoginResponse {
   access_token: String!
 }
@@ -51,8 +73,12 @@ type ExpenseCategory {
 
 type Query {
   users: [User!]!
-  user(id: Float!): User!
+  user(id: Int!): User!
   me: String!
+  bankAccounts: [BankAccount!]!
+  bankAccount(id: Int!): BankAccount!
+  companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
+  company(id: Int!): Company!
   expenseCategories: [ExpenseCategory!]!
   expenseCategory(id: Int!): ExpenseCategory!
   expenseSubCategories: [ExpenseSubCategory!]!
@@ -63,7 +89,13 @@ type Mutation {
   createUser(createUserInput: CreateUserInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User!
+  createBankAccount(createBankAccountInput: CreateBankAccountInput!): BankAccount!
+  updateBankAccount(updateBankAccountInput: UpdateBankAccountInput!): BankAccount!
+  removeBankAccount(id: Int!): Boolean!
   login(email: String!, password: String!): LoginResponse!
+  createCompany(createCompanyInput: CreateCompanyInput!): Company!
+  updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
+  deleteCompany(id: Int!): Boolean!
   createExpenseCategory(createExpenseCategoryInput: CreateExpenseCategoryInput!): ExpenseCategory!
   updateExpenseCategory(id: Int!, updateExpenseCategoryInput: UpdateExpenseCategoryInput!): ExpenseCategory!
   removeExpenseCategory(id: Int!): ExpenseCategory!
@@ -81,6 +113,32 @@ input UpdateUserInput {
   """Example field (placeholder)"""
   exampleField: Int
   id: Int!
+}
+
+input CreateBankAccountInput {
+  companyId: Int!
+  name: String!
+  accountNumber: String!
+  bankBalance: Float!
+}
+
+input UpdateBankAccountInput {
+  id: Int!
+  companyId: Float!
+  name: String!
+  accountNumber: String!
+}
+
+input CreateCompanyInput {
+  name: String!
+  salaryDate: Float!
+}
+
+input UpdateCompanyInput {
+  id: ID!
+  name: String!
+  salaryDate: Float!
+  isActive: Boolean!
 }
 
 input CreateExpenseCategoryInput {
