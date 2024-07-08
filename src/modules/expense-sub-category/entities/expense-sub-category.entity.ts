@@ -1,4 +1,11 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { ExpenseCategory } from '../../expense-category/entities/expense-category.entity';
 
@@ -14,7 +21,7 @@ export class ExpenseSubCategory {
   name: string;
 
   @Field()
-  @Column({default:true})
+  @Column({ default: true })
   isActive: boolean;
 
   @Field()
@@ -26,6 +33,6 @@ export class ExpenseSubCategory {
   updatedAt: Date;
 
   @Field(() => ExpenseCategory)
-  @ManyToOne(() => ExpenseCategory, category => category.subCategories)
+  @ManyToOne(() => ExpenseCategory, (category) => category.subCategories)
   expenseCategory: ExpenseCategory;
 }

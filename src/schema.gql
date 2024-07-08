@@ -15,19 +15,6 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-type User {
-  id: ID!
-  name: String!
-  email: String!
-  password: String!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  createdBy: String!
-  updatedBy: String!
-  isActive: Boolean!
-  roles: [Role!]!
-}
-
 type Company {
   id: Int!
   name: String!
@@ -47,7 +34,41 @@ type BankAccount {
   createdBy: Float!
   updatedBy: Float!
   isActive: Boolean!
+  bankBalance: Float!
   company: Company!
+  bankTransactions: [BankTransaction!]!
+}
+
+type BankTransaction {
+  id: Int!
+  bankId: Int!
+  amount: Float!
+  type: TransactionType!
+  comment: String!
+  createdAt: DateTime!
+  createdBy: Int!
+  bankBalance: Int
+  bankAccount: BankAccount!
+  createdByUser: User!
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  password: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: String!
+  updatedBy: String!
+  isActive: Boolean!
+  roles: [Role!]!
+  transactions: [BankTransaction!]!
 }
 
 type LoginResponse {
@@ -77,12 +98,14 @@ type Query {
   me: String!
   bankAccounts: [BankAccount!]!
   bankAccount(id: Int!): BankAccount!
-  companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
-  company(id: Int!): Company!
   expenseCategories: [ExpenseCategory!]!
   expenseCategory(id: Int!): ExpenseCategory!
   expenseSubCategories: [ExpenseSubCategory!]!
   expenseSubCategory(id: Int!): ExpenseSubCategory!
+  companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
+  company(id: Int!): Company!
+  bankTransactions(pageSize: Int! = 10, pageNumber: Int! = 1): [BankTransaction!]!
+  bankTransaction(id: Int!): BankTransaction!
 }
 
 type Mutation {
@@ -93,15 +116,17 @@ type Mutation {
   updateBankAccount(updateBankAccountInput: UpdateBankAccountInput!): BankAccount!
   removeBankAccount(id: Int!): Boolean!
   login(email: String!, password: String!): LoginResponse!
-  createCompany(createCompanyInput: CreateCompanyInput!): Company!
-  updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
-  deleteCompany(id: Int!): Boolean!
   createExpenseCategory(createExpenseCategoryInput: CreateExpenseCategoryInput!): ExpenseCategory!
   updateExpenseCategory(id: Int!, updateExpenseCategoryInput: UpdateExpenseCategoryInput!): ExpenseCategory!
   removeExpenseCategory(id: Int!): ExpenseCategory!
   createExpenseSubCategory(createExpenseSubCategoryInput: CreateExpenseSubCategoryInput!): ExpenseSubCategory!
   updateExpenseSubCategory(updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput!): ExpenseSubCategory!
   removeExpenseSubCategory(id: Int!): ExpenseSubCategory!
+  createCompany(createCompanyInput: CreateCompanyInput!): Company!
+  updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
+  deleteCompany(id: Int!): Boolean!
+  createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): BankTransaction!
+  removeBankTransaction(id: Int!): String!
 }
 
 input CreateUserInput {
@@ -127,6 +152,30 @@ input UpdateBankAccountInput {
   companyId: Float!
   name: String!
   accountNumber: String!
+  isActive: Boolean!
+}
+
+input CreateExpenseCategoryInput {
+  name: String!
+  isActive: Boolean = true
+}
+
+input UpdateExpenseCategoryInput {
+  name: String
+  isActive: Boolean = true
+}
+
+input CreateExpenseSubCategoryInput {
+  name: String!
+  expenseCategoryId: Int!
+  isActive: Boolean = true
+}
+
+input UpdateExpenseSubCategoryInput {
+  name: String
+  expenseCategoryId: Int
+  isActive: Boolean = true
+  id: Int!
 }
 
 input CreateCompanyInput {
@@ -141,25 +190,9 @@ input UpdateCompanyInput {
   isActive: Boolean!
 }
 
-input CreateExpenseCategoryInput {
-  name: String!
-  isActive: Boolean
-}
-
-input UpdateExpenseCategoryInput {
-  name: String
-  isActive: Boolean
-}
-
-input CreateExpenseSubCategoryInput {
-  name: String!
-  expenseCategoryId: Int!
-  isActive: Boolean!
-}
-
-input UpdateExpenseSubCategoryInput {
-  name: String
-  expenseCategoryId: Int
-  isActive: Boolean
-  id: Int!
+input CreateBankTransactionInput {
+  bankId: Int!
+  amount: Float!
+  type: String!
+  comment: String!
 }

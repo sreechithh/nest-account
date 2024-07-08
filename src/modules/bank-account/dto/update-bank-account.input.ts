@@ -1,5 +1,5 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber } from 'class-validator';
 import { IsUnique } from '../../common/decorators/unique.validator';
 import { BankAccount } from '../entities/bank-account.entity';
 
@@ -23,4 +23,8 @@ export class UpdateBankAccountInput {
     message: 'Account Number is already in use.',
   })
   accountNumber: string;
+
+  @Field()
+  @IsBoolean()
+  isActive: boolean;
 }
