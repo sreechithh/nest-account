@@ -45,7 +45,9 @@ export class BankAccountResolver {
     @Args('updateBankAccountInput')
     updateBankAccountInput: UpdateBankAccountInput,
   ) {
-    return this.bankAccountService.update(user, updateBankAccountInput);
+    const hi = this.bankAccountService.update(user, updateBankAccountInput);
+    console.log(hi);
+    return hi;
   }
 
   @Mutation(() => Boolean)

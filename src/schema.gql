@@ -47,6 +47,7 @@ type BankTransaction {
   comment: String!
   createdAt: DateTime!
   createdBy: Int!
+  bankBalance: Int
   bankAccount: BankAccount!
   createdByUser: User!
 }
@@ -103,7 +104,7 @@ type Query {
   expenseSubCategory(id: Int!): ExpenseSubCategory!
   companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
   company(id: Int!): Company!
-  bankTransactions: [BankTransaction!]!
+  bankTransactions(pageSize: Int! = 10, pageNumber: Int! = 1): [BankTransaction!]!
   bankTransaction(id: Int!): BankTransaction!
 }
 
@@ -125,8 +126,7 @@ type Mutation {
   updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
   deleteCompany(id: Int!): Boolean!
   createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): BankTransaction!
-  updateBankTransaction(updateBankTransactionInput: UpdateBankTransactionInput!): BankTransaction!
-  removeBankTransaction(id: Int!): BankTransaction!
+  removeBankTransaction(id: Int!): String!
 }
 
 input CreateUserInput {
@@ -191,12 +191,8 @@ input UpdateCompanyInput {
 }
 
 input CreateBankTransactionInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
-input UpdateBankTransactionInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+  bankId: Int!
+  amount: Float!
+  type: String!
+  comment: String!
 }

@@ -16,5 +16,6 @@ import { BankTransaction } from '../bank-transactions/entities/bank-transaction.
     JwtService,
     IsUniqueConstraint,
   ],
+  exports: [BankAccountService],
 })
 export class BankAccountModule {}

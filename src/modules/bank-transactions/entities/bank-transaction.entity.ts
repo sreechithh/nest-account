@@ -60,6 +60,9 @@ export class BankTransaction {
   @Field(() => Int)
   createdBy: number;
 
+  @Field(() => Int, { nullable: true })
+  bankBalance?: number | null;
+
   @Field(() => BankAccount)
   @ManyToOne(() => BankAccount, (bankAccount) => bankAccount.bankTransactions)
   @JoinColumn({ name: 'bankId' })

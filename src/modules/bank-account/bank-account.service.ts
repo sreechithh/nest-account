@@ -54,19 +54,15 @@ export class BankAccountService {
         where: { id: bankEntity.id },
         relations: ['bankTransactions'],
       });
-      const netBalance = this.getBankBalance(bankEntity.id);
+      const netBalance = await this.getBankBalance(bankEntity.id);
 
       return { ...savedBankEntity, bankBalance: netBalance };
     });
   }
 
-  // findAll(): Promise<BankAccount[]> {
-  //   return this.bankAccountRepository.find();
-  // }
-
   async findAll(): Promise<any[]> {
     const bankAccounts = await this.bankAccountRepository.find({
-      relations: ['bankTransactions'], // Assuming 'bankTransactions' is the relation name
+      relations: ['bankTransactions'],
     });
 
     return await Promise.all(
@@ -91,48 +87,51 @@ export class BankAccountService {
     user: User,
     updateBankAccountInput: UpdateBankAccountInput,
   ): Promise<BankAccount | null> {
-    //tomo
-    const { id, accountNumber, companyId, name } = updateBankAccountInput;
+    const { id, accountNumber, companyId, name, isActive } =
+      updateBankAccountInput;
     const company = await this.companyRepository.findOneByOrFail({
       id: companyId,
     });
-
     const bankAccount = await this.bankAccountRepository.preload({
       id,
       accountNumber,
       company,
       name,
+      isActive,
       updatedBy: user.id,
     });
 
     if (!bankAccount) {
       throw new NotFoundException(`BankAccount with ID ${id} not found`);
     }
-    const savedBankEntity = this.bankAccountRepository.save(bankAccount);
-    const netBalance = this.getBankBalance(id);
+    const savedBankEntity = await this.bankAccountRepository.save(bankAccount);
+    const netBalance = await this.getBankBalance(id);
+    const bankEntity = await this.bankAccountRepository.findOneOrFail({
+      where: { id: savedBankEntity.id },
+      relations: ['bankTransactions', 'company'],
+    });
 
-    return { ...savedBankEntity, bankBalance: netBalance };
+    return { ...bankEntity, bankBalance: netBalance };
   }
 
   async remove(id: number): Promise<void> {
-    const bankAccount = await this.findOne(id);
+    const bankAccount = await this.bankAccountRepository.findOneByOrFail({
+      id,
+    });
     await this.bankAccountRepository.remove(bankAccount);
   }
 
   async getBankBalance(bankId: number): Promise<number> {
-    const result = await this.bankTransactionRepository
-      .createQueryBuilder('transaction')
-      .select(
-        'SUM(CASE WHEN transaction.type = :credit THEN transaction.amount ELSE 0 END) - SUM(CASE WHEN transaction.type = :debit THEN transaction.amount ELSE 0 END)',
-        'netBalance',
-      )
-      .where('transaction.bankId = :bankId', { bankId: bankId })
-      .setParameters({
-        credit: TransactionType.CREDIT,
-        debit: TransactionType.DEBIT,
-      })
-      .getRawOne();
+    const credited = await this.bankTransactionRepository.sum('amount', {
+      bankId,
+      type: TransactionType.CREDIT,
+    });
+    const debited = await this.bankTransactionRepository.sum('amount', {
+      bankId,
+      type: TransactionType.DEBIT,
+    });
+    const total = (credited ?? 0) - (debited ?? 0);
 
-    return parseFloat(result.netBalance) || 0;
+    return total || 0;
   }
 }
