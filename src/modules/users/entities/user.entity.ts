@@ -6,6 +6,7 @@ import {
   JoinTable,
   ManyToMany,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
@@ -14,6 +15,7 @@ import { IsEmail, IsNotEmpty, IsOptional, Length } from 'class-validator';
 import { Role } from '../../roles/entities/role.entity';
 import * as bcrypt from 'bcrypt';
 import { BankTransaction } from '../../bank-transactions/entities/bank-transaction.entity';
+import { Staff } from '../../staff/entities/staff.entity';
 
 @Unique(['email'])
 @ObjectType()
@@ -65,14 +67,14 @@ export class User {
   roles: Role[];
 
   @OneToMany(() => BankTransaction, (transaction) => transaction.createdByUser)
-  @Field(() => [BankTransaction])
+  @Field(() => [BankTransaction], { nullable: true })
   transactions?: BankTransaction[];
+
+  @Field(() => Staff, { nullable: true })
+  @OneToOne(() => Staff, (staff) => staff.user, { nullable: true })
+  staff: Staff;
 
   async hashPassword() {
     this.password = await bcrypt.hash(this.password, 10);
-  }
-
-  async comparePassword(attempt: string): Promise<boolean> {
-    return await bcrypt.compare(attempt, this.password);
   }
 }

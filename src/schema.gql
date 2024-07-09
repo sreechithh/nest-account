@@ -15,6 +15,12 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type Staff {
+  id: ID!
+  user: Int!
+  company: Company!
+}
+
 type Company {
   id: Int!
   name: String!
@@ -23,6 +29,7 @@ type Company {
   createdAt: DateTime!
   updatedAt: DateTime!
   bankAccounts: [BankAccount!]!
+  staff: Staff!
 }
 
 type BankAccount {
@@ -68,7 +75,8 @@ type User {
   updatedBy: String!
   isActive: Boolean!
   roles: [Role!]!
-  transactions: [BankTransaction!]!
+  transactions: [BankTransaction!]
+  staff: Staff
 }
 
 type LoginResponse {
@@ -106,6 +114,7 @@ type Query {
   company(id: Int!): Company!
   bankTransactions(pageSize: Int! = 10, pageNumber: Int! = 1): [BankTransaction!]!
   bankTransaction(id: Int!): BankTransaction!
+  staff(id: Int!): Staff!
 }
 
 type Mutation {
@@ -127,6 +136,9 @@ type Mutation {
   deleteCompany(id: Int!): Boolean!
   createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): BankTransaction!
   removeBankTransaction(id: Int!): String!
+  createStaff(createStaffInput: CreateStaffInput!): Staff!
+  updateStaff(updateStaffInput: UpdateStaffInput!): Staff!
+  removeStaff(id: Int!): Staff!
 }
 
 input CreateUserInput {
@@ -195,4 +207,15 @@ input CreateBankTransactionInput {
   amount: Float!
   type: String!
   comment: String!
+}
+
+input CreateStaffInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateStaffInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
 }

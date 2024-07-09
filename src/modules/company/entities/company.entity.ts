@@ -8,6 +8,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { BankAccount } from '../../bank-account/entities/bank-account.entity';
+import { Staff } from '../../staff/entities/staff.entity';
 
 @Entity()
 @ObjectType()
@@ -39,4 +40,8 @@ export class Company {
   @Field(() => [BankAccount])
   @OneToMany(() => BankAccount, (bankAccounts) => bankAccounts.company)
   bankAccounts?: BankAccount[];
+
+  @Field(() => Staff)
+  @OneToMany(() => Staff, (staff) => staff.company)
+  staff?: Staff[];
 }
