@@ -92,6 +92,21 @@ type ExpenseCategory {
   updatedAt: DateTime!
 }
 
+type Forecast {
+  id: ID!
+  amount: Float!
+  comment: String!
+  payDate: DateTime
+  expenseCategory: ExpenseCategory!
+  expenseSubCategory: ExpenseSubCategory!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User!
+  updatedBy: User!
+  staff: User
+  company: Company!
+}
+
 type Query {
   users: [User!]!
   user(id: Int!): User!
@@ -106,6 +121,7 @@ type Query {
   company(id: Int!): Company!
   bankTransactions(pageSize: Int! = 10, pageNumber: Int! = 1): [BankTransaction!]!
   bankTransaction(id: Int!): BankTransaction!
+  forecast(id: Int!): Forecast!
 }
 
 type Mutation {
@@ -127,6 +143,9 @@ type Mutation {
   deleteCompany(id: Int!): Boolean!
   createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): BankTransaction!
   removeBankTransaction(id: Int!): String!
+  createForecast(createForecastInput: CreateForecastInput!): [Forecast!]!
+  updateForecast(updateForecastInput: UpdateForecastInput!): Forecast!
+  removeForecast(id: Int!): Forecast!
 }
 
 input CreateUserInput {
@@ -195,4 +214,27 @@ input CreateBankTransactionInput {
   amount: Float!
   type: String!
   comment: String!
+}
+
+input CreateForecastInput {
+  amount: Float!
+  comment: String!
+  payDate: DateTime!
+  expenseCategoryId: Float!
+  expenseSubCategoryId: Float!
+  staffId: Int
+  companyId: Int!
+  isGenerateForAllMonth: Boolean
+}
+
+input UpdateForecastInput {
+  amount: Float!
+  comment: String!
+  payDate: DateTime!
+  expenseCategoryId: Float!
+  expenseSubCategoryId: Float!
+  staffId: Int
+  companyId: Int!
+  isGenerateForAllMonth: Boolean
+  id: Int!
 }

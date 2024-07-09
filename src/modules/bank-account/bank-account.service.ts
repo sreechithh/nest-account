@@ -92,26 +92,20 @@ export class BankAccountService {
     const company = await this.companyRepository.findOneByOrFail({
       id: companyId,
     });
-    const bankAccount = await this.bankAccountRepository.preload({
-      id,
-      accountNumber,
-      company,
-      name,
-      isActive,
-      updatedBy: user.id,
-    });
-
-    if (!bankAccount) {
-      throw new NotFoundException(`BankAccount with ID ${id} not found`);
-    }
-    const savedBankEntity = await this.bankAccountRepository.save(bankAccount);
-    const netBalance = await this.getBankBalance(id);
-    const bankEntity = await this.bankAccountRepository.findOneOrFail({
-      where: { id: savedBankEntity.id },
+    const bankAccount = await this.bankAccountRepository.findOneOrFail({
+      where: { id },
       relations: ['bankTransactions', 'company'],
     });
+    bankAccount.id = id;
+    bankAccount.accountNumber = accountNumber;
+    bankAccount.company = company;
+    bankAccount.name = name;
+    bankAccount.isActive = isActive;
+    bankAccount.updatedBy = user.id;
+    const savedBankEntity = await this.bankAccountRepository.save(bankAccount);
+    const netBalance = await this.getBankBalance(id);
 
-    return { ...bankEntity, bankBalance: netBalance };
+    return { ...savedBankEntity, bankBalance: netBalance };
   }
 
   async remove(id: number): Promise<void> {
