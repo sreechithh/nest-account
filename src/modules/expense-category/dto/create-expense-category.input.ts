@@ -1,4 +1,4 @@
-import { InputType, Field ,PartialType} from '@nestjs/graphql';
+import { InputType, Field } from '@nestjs/graphql';
 import { IsNotEmpty } from 'class-validator';
 
 @InputType()
@@ -13,6 +13,3 @@ export class CreateExpenseCategoryInput {
   isActive?: boolean;
 
 }
-
-@InputType()
-export class UpdateExpenseCategoryInput extends PartialType(CreateExpenseCategoryInput) {}

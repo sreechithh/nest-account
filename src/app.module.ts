@@ -15,6 +15,8 @@ import { IsUniqueConstraint } from './modules/common/decorators/unique.validator
 import { ExpenseCategoryModule } from './modules/expense-category/expense-category.module';
 import { ExpenseSubCategoryModule } from './modules/expense-sub-category/expense-sub-category.module';
 import { BankTransactionsModule } from './modules/bank-transactions/bank-transactions.module';
+import { ExpenseModule } from './modules/expense/expense.module';
+// import { EmployeeExpenseModule } from './modules/employee-expense/employee-expense.module';
 
 @Module({
   imports: [
@@ -31,8 +33,10 @@ import { BankTransactionsModule } from './modules/bank-transactions/bank-transac
     SeedModule,
     ExpenseCategoryModule,
     ExpenseSubCategoryModule,
+    ExpenseModule,
     CompanyModule,
     BankTransactionsModule,
+    // EmployeeExpenseModule,
   ],
   providers: [IsUniqueConstraint],
 })

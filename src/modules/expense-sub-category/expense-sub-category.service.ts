@@ -15,36 +15,54 @@ export class ExpenseSubCategoryService {
     private expenseCategoryRepository: Repository<ExpenseCategory>,
   ) {}
 
-  async create(createExpenseSubCategoryInput: CreateExpenseSubCategoryInput): Promise<ExpenseSubCategory> {
-    const expenseCategory = await this.expenseCategoryRepository.findOneBy({ id:createExpenseSubCategoryInput.expenseCategoryId});
+  async create(
+    createExpenseSubCategoryInput: CreateExpenseSubCategoryInput,
+  ): Promise<ExpenseSubCategory> {
+    const expenseCategory = await this.expenseCategoryRepository.findOneBy({
+      id: createExpenseSubCategoryInput.expenseCategoryId,
+    });
     if (!expenseCategory) {
-      throw new NotFoundException(`ExpenseCategory with ID ${createExpenseSubCategoryInput.expenseCategoryId} not found`);
+      throw new NotFoundException(
+        `ExpenseCategory with ID ${createExpenseSubCategoryInput.expenseCategoryId} not found`,
+      );
     }
 
     const expenseSubCategory = this.expenseSubCategoryRepository.create({
       name: createExpenseSubCategoryInput.name,
       expenseCategory: expenseCategory,
-      isActive: createExpenseSubCategoryInput.isActive
+      isActive: createExpenseSubCategoryInput.isActive,
     });
 
     return this.expenseSubCategoryRepository.save(expenseSubCategory);
   }
 
   findAll(): Promise<ExpenseSubCategory[]> {
-    return this.expenseSubCategoryRepository.find({ relations: ['expenseCategory'] });
+    return this.expenseSubCategoryRepository.find({
+      relations: ['expenseCategory', 'expenses'],
+    });
   }
 
   async findOne(id: number): Promise<ExpenseSubCategory> {
-    return  await this.expenseSubCategoryRepository.findOneOrFail({ where: { id }, relations: ['expenseCategory'] });
+    return await this.expenseSubCategoryRepository.findOneOrFail({
+      where: { id },
+      relations: ['expenseCategory', 'expenses'],
+    });
   }
 
-  async update(updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput): Promise<ExpenseSubCategory> {
-    const { id, expenseCategoryId, ...updateData } = updateExpenseSubCategoryInput;
+  async update(
+    id: number,
+    updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput,
+  ): Promise<ExpenseSubCategory> {
+    const { expenseCategoryId, ...updateData } = updateExpenseSubCategoryInput;
 
-    const expenseSubCategory = await this.expenseSubCategoryRepository.findOneOrFail({ where: { id } });
+    const expenseSubCategory =
+      await this.expenseSubCategoryRepository.findOneOrFail({ where: { id } });
 
     if (expenseCategoryId) {
-      const expenseCategory = await this.expenseCategoryRepository.findOneOrFail({ where: { id: expenseCategoryId } });
+      const expenseCategory =
+        await this.expenseCategoryRepository.findOneOrFail({
+          where: { id: expenseCategoryId },
+        });
       expenseSubCategory.expenseCategory = expenseCategory;
     }
 

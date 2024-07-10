@@ -3,6 +3,4 @@ import { CreateExpenseSubCategoryInput } from './create-expense-sub-category.inp
 
 @InputType()
 export class UpdateExpenseSubCategoryInput extends PartialType(CreateExpenseSubCategoryInput) {
-  @Field(() => Int)
-  id: number;
 }

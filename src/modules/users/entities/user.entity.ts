@@ -13,6 +13,7 @@ import {
 import { IsEmail, IsNotEmpty, IsOptional, Length } from 'class-validator';
 import { Role } from '../../roles/entities/role.entity';
 import * as bcrypt from 'bcrypt';
+import { EmployeeExpense } from '../../employee-expense/entities/employee-expense.entity';
 import { BankTransaction } from '../../bank-transactions/entities/bank-transaction.entity';
 
 @Unique(['email'])
@@ -67,6 +68,10 @@ export class User {
   @OneToMany(() => BankTransaction, (transaction) => transaction.createdByUser)
   @Field(() => [BankTransaction])
   transactions?: BankTransaction[];
+
+  @Field(() => [EmployeeExpense])
+  @OneToMany(() => EmployeeExpense, (employeeExpense) => employeeExpense.user)
+  employeeExpenses: EmployeeExpense[];
 
   async hashPassword() {
     this.password = await bcrypt.hash(this.password, 10);

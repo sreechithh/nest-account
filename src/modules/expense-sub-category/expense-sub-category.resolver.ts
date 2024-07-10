@@ -33,9 +33,10 @@ export class ExpenseSubCategoryResolver {
 
   @Mutation(() => ExpenseSubCategory)
   updateExpenseSubCategory(
+    @Args('id', { type: () => Int }) id: number,
     @Args('updateExpenseSubCategoryInput') updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput,
   ): Promise<ExpenseSubCategory> {
-    return this.expenseSubCategoryService.update(updateExpenseSubCategoryInput);
+    return this.expenseSubCategoryService.update(id,updateExpenseSubCategoryInput);
   }
   @Mutation(() => ExpenseSubCategory)
   removeExpenseSubCategory(@Args('id', { type: () => Int }) id: number): Promise<ExpenseSubCategory> {

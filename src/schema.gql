@@ -15,6 +15,27 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type ExpenseSubCategory {
+  id: Int!
+  expenseCategoryId: Float!
+  name: String!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  expenseCategory: ExpenseCategory!
+  expenses: [Expense!]
+}
+
+type ExpenseCategory {
+  id: Int!
+  name: String!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  subCategories: [ExpenseSubCategory!]
+  expenses: [Expense!]
+}
+
 type Company {
   id: Int!
   name: String!
@@ -50,11 +71,55 @@ type BankTransaction {
   bankBalance: Int
   bankAccount: BankAccount!
   createdByUser: User!
+  expense: Expense!
 }
 
 enum TransactionType {
   CREDIT
   DEBIT
+}
+
+type Expense {
+  id: Int!
+  adminResponse: DateTime
+  amount: Float!
+  comments: String
+  status: ExpenseStatus!
+  expenseCategoryId: Float!
+  expenseSubCategoryId: Float!
+  bankTransactionId: Float
+  companyId: Float!
+  paidAt: DateTime
+  paidDate: Date
+  isPaymentRequest: Boolean
+  createdAt: DateTime!
+  createdBy: Int!
+  updatedAt: DateTime!
+  updatedBy: Int
+  expenseCategory: ExpenseCategory!
+  expenseSubCategory: ExpenseSubCategory!
+  employeeExpense: EmployeeExpense
+  bankTransaction: BankTransaction
+  company: Company
+}
+
+"""The status of an expense"""
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
+"""
+A date string, such as 2007-12-03, compliant with the `full-date` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar Date
+
+type EmployeeExpense {
+  id: Int!
+  user: User!
+  expense: Expense!
 }
 
 type User {
@@ -69,27 +134,11 @@ type User {
   isActive: Boolean!
   roles: [Role!]!
   transactions: [BankTransaction!]!
+  employeeExpenses: [EmployeeExpense!]!
 }
 
 type LoginResponse {
   access_token: String!
-}
-
-type ExpenseSubCategory {
-  id: Int!
-  name: String!
-  isActive: Boolean!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  expenseCategory: ExpenseCategory!
-}
-
-type ExpenseCategory {
-  id: Int!
-  name: String!
-  isActive: Boolean!
-  createdAt: DateTime!
-  updatedAt: DateTime!
 }
 
 type Query {
@@ -102,10 +151,12 @@ type Query {
   expenseCategory(id: Int!): ExpenseCategory!
   expenseSubCategories: [ExpenseSubCategory!]!
   expenseSubCategory(id: Int!): ExpenseSubCategory!
-  companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
-  company(id: Int!): Company!
+  expenses(pageSize: Int! = 10, pageNumber: Int! = 1): [Expense!]!
+  expense(id: Int!): Expense!
   bankTransactions(pageSize: Int! = 10, pageNumber: Int! = 1): [BankTransaction!]!
   bankTransaction(id: Int!): BankTransaction!
+  companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
+  company(id: Int!): Company!
 }
 
 type Mutation {
@@ -120,13 +171,19 @@ type Mutation {
   updateExpenseCategory(id: Int!, updateExpenseCategoryInput: UpdateExpenseCategoryInput!): ExpenseCategory!
   removeExpenseCategory(id: Int!): ExpenseCategory!
   createExpenseSubCategory(createExpenseSubCategoryInput: CreateExpenseSubCategoryInput!): ExpenseSubCategory!
-  updateExpenseSubCategory(updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput!): ExpenseSubCategory!
+  updateExpenseSubCategory(id: Int!, updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput!): ExpenseSubCategory!
   removeExpenseSubCategory(id: Int!): ExpenseSubCategory!
+  createExpense(createExpenseInput: CreateExpenseInput!): Expense!
+  updateExpense(id: Int!, updateExpenseInput: UpdateExpenseInput!): Expense!
+  removeExpense(id: Int!): Expense!
+  approveExpenses(ids: [Int!]!): Boolean!
+  rejectExpenses(ids: [Int!]!): Boolean!
+  paidExpenses(ids: [Int!]!): Boolean!
+  createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): BankTransaction!
+  removeBankTransaction(id: Int!): String!
   createCompany(createCompanyInput: CreateCompanyInput!): Company!
   updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
   deleteCompany(id: Int!): Boolean!
-  createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): BankTransaction!
-  removeBankTransaction(id: Int!): String!
 }
 
 input CreateUserInput {
@@ -175,7 +232,37 @@ input UpdateExpenseSubCategoryInput {
   name: String
   expenseCategoryId: Int
   isActive: Boolean = true
-  id: Int!
+}
+
+input CreateExpenseInput {
+  amount: Float!
+  comments: String
+  isPaymentRequest: Boolean! = false
+  paidDate: Date
+  expenseCategoryId: Int!
+  expenseSubCategoryId: Int!
+  employeeId: Int
+  bankId: Int
+  companyId: Int
+}
+
+input UpdateExpenseInput {
+  amount: Float
+  comments: String
+  isPaymentRequest: Boolean = false
+  paidDate: Date
+  expenseCategoryId: Int
+  expenseSubCategoryId: Int
+  employeeId: Int
+  bankId: Int
+  companyId: Int
+}
+
+input CreateBankTransactionInput {
+  bankId: Int!
+  amount: Float!
+  type: String!
+  comment: String!
 }
 
 input CreateCompanyInput {
@@ -188,11 +275,4 @@ input UpdateCompanyInput {
   name: String!
   salaryDate: Float!
   isActive: Boolean!
-}
-
-input CreateBankTransactionInput {
-  bankId: Int!
-  amount: Float!
-  type: String!
-  comment: String!
 }
