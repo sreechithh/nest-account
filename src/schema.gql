@@ -19,7 +19,6 @@ type Company {
   id: Int!
   name: String!
   isActive: Boolean!
-  salaryDate: Float!
   createdAt: DateTime!
   updatedAt: DateTime!
   bankAccounts: [BankAccount!]!
@@ -28,15 +27,15 @@ type Company {
 type BankAccount {
   id: ID!
   name: String!
-  accountNumber: String!
+  accountNumber: Float!
   createdAt: DateTime!
   updatedAt: DateTime!
   createdBy: Float!
   updatedBy: Float!
   isActive: Boolean!
-  bankBalance: Float!
+  bankBalance: Float
   company: Company!
-  bankTransactions: [BankTransaction!]!
+  bankTransactions: [BankTransaction!]
 }
 
 type BankTransaction {
@@ -121,6 +120,7 @@ type Query {
   company(id: Int!): Company!
   bankTransactions(pageSize: Int! = 10, pageNumber: Int! = 1): [BankTransaction!]!
   bankTransaction(id: Int!): BankTransaction!
+  forecasts(perPage: Int! = 10, page: Int! = 1): [Forecast!]!
   forecast(id: Int!): Forecast!
 }
 
@@ -140,12 +140,12 @@ type Mutation {
   removeExpenseSubCategory(id: Int!): ExpenseSubCategory!
   createCompany(createCompanyInput: CreateCompanyInput!): Company!
   updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
-  deleteCompany(id: Int!): Boolean!
+  deleteCompany(id: Int!): String!
   createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): BankTransaction!
   removeBankTransaction(id: Int!): String!
   createForecast(createForecastInput: CreateForecastInput!): [Forecast!]!
   updateForecast(updateForecastInput: UpdateForecastInput!): Forecast!
-  removeForecast(id: Int!): Forecast!
+  removeForecast(id: Int!): String!
 }
 
 input CreateUserInput {
@@ -162,15 +162,14 @@ input UpdateUserInput {
 input CreateBankAccountInput {
   companyId: Int!
   name: String!
-  accountNumber: String!
-  bankBalance: Float!
+  accountNumber: Float!
 }
 
 input UpdateBankAccountInput {
   id: Int!
   companyId: Float!
   name: String!
-  accountNumber: String!
+  accountNumber: Float!
   isActive: Boolean!
 }
 
@@ -199,13 +198,11 @@ input UpdateExpenseSubCategoryInput {
 
 input CreateCompanyInput {
   name: String!
-  salaryDate: Float!
 }
 
 input UpdateCompanyInput {
   id: ID!
   name: String!
-  salaryDate: Float!
   isActive: Boolean!
 }
 

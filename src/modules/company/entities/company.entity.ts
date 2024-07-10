@@ -24,15 +24,11 @@ export class Company {
   @Field()
   isActive: boolean;
 
-  @Column()
-  @Field()
-  salaryDate: number;
-
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   @Field()
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamp' })
   @Field()
   updatedAt: Date;
 

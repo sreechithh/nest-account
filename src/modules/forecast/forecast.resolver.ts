@@ -25,10 +25,13 @@ export class ForecastResolver {
     return this.forecastService.create(user, createForecastInput);
   }
 
-  @Query(() => [Forecast], { name: 'forecast' })
+  @Query(() => [Forecast], { name: 'forecasts' })
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
-  findAll() {
-    return this.forecastService.findAll();
+  findAll(
+    @Args('perPage', { type: () => Int, defaultValue: 10 }) perPage: number,
+    @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
+  ) {
+    return this.forecastService.findAll(perPage, page);
   }
 
   @Query(() => Forecast, { name: 'forecast' })
@@ -46,7 +49,7 @@ export class ForecastResolver {
     return this.forecastService.update(user, updateForecastInput);
   }
 
-  @Mutation(() => Forecast)
+  @Mutation(() => String)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   removeForecast(@Args('id', { type: () => Int }) id: number) {
     return this.forecastService.remove(id);

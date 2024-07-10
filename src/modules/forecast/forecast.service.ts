@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { Forecast } from './entities/forecast.entity';
 import { User } from '../users/entities/user.entity';
 import { ExpenseSubCategory } from '../expense-sub-category/entities/expense-sub-category.entity';
@@ -62,12 +62,36 @@ export class ForecastService {
     return this.forecastRepository.save(forecasts);
   }
 
-  findAll() {
-    return `This action returns all forecast`;
+  findAll(
+    perPage: number,
+    page: number,
+    searchQuery?: string,
+  ): Promise<Forecast[]> {
+    const options: FindManyOptions<Forecast> = {
+      take: perPage,
+      skip: (page - 1) * perPage,
+      relations: [
+        'expenseCategory',
+        'expenseSubCategory',
+        'createdBy',
+        'updatedBy',
+        'company',
+      ],
+    };
+    return this.forecastRepository.find(options);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} forecast`;
+  findOne(id: number): Promise<Forecast> {
+    return this.forecastRepository.findOneOrFail({
+      where: { id },
+      relations: [
+        'expenseCategory',
+        'expenseSubCategory',
+        'createdBy',
+        'updatedBy',
+        'company',
+      ],
+    });
   }
 
   async update(user: User, updateForecastInput: UpdateForecastInput) {
@@ -104,8 +128,11 @@ export class ForecastService {
     return await this.forecastRepository.save(forecast);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} forecast`;
+  async remove(id: number) {
+    const forecast = await this.forecastRepository.findOneByOrFail({ id });
+    await this.forecastRepository.remove(forecast);
+
+    return `ID with #${id} has been removed from forecast`;
   }
 
   private async checkExpenseCategoryAndStaffExists(

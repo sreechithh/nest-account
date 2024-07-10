@@ -46,29 +46,28 @@ export class CompanyService {
     if (!existingCompany) {
       throw new NotFoundException(`Company with ID ${id} not found`);
     }
+    existingCompany.name = updateCompanyInput.name;
+    existingCompany.isActive = updateCompanyInput.isActive;
 
-    const updatedCompany = this.companyRepository.merge(existingCompany, {
-      ...updateCompanyInput,
-    });
-
-    return await this.companyRepository.save(updatedCompany);
+    return await this.companyRepository.save(existingCompany);
   }
 
-  async remove(id: number): Promise<Company> {
+  async remove(id: number): Promise<string> {
     const company = await this.companyRepository.findOne({
       where: { id },
       relations: ['bankAccounts'],
     });
 
-    if (!company) {
-      throw new ConflictException(`Company with ID ${id} does not exist`);
-    }
-
-    if (company?.bankAccounts && company.bankAccounts.length > 0) {
+    if (
+      !company ||
+      (company?.bankAccounts && company.bankAccounts.length > 0)
+    ) {
       throw new ConflictException(
         `Company with ID ${id} has bank accounts and cannot be deleted`,
       );
     }
-    return await this.companyRepository.remove(company);
+    await this.companyRepository.remove(company);
+
+    return `Company with ID ${id} has been removed`;
   }
 }
