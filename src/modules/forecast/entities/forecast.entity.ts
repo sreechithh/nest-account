@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, Float } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Float, Int } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
@@ -24,11 +24,11 @@ export class Forecast {
   @Field(() => Float)
   amount: number;
 
-  @Column()
+  @Column({ default: 'Default comment' })
   @Field()
   comment: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   @Field({ nullable: true })
   payDate?: Date;
 
@@ -69,4 +69,7 @@ export class Forecast {
   @JoinColumn({ name: 'companyId' })
   @Field(() => Company)
   company: Company;
+
+  @Column({ nullable: true })
+  relatedForecastId?: number;
 }

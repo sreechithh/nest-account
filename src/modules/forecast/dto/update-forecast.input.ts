@@ -35,4 +35,7 @@ export class UpdateForecastInput extends PartialType(CreateForecastInput) {
   @Field(() => Int)
   @IsNumber()
   companyId: number;
+
+  @Field(() => Boolean, { nullable: true })
+  isUpdateForAllMonth?: boolean;
 }

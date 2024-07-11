@@ -234,4 +234,5 @@ input UpdateForecastInput {
   companyId: Int!
   isGenerateForAllMonth: Boolean
   id: Int!
+  isUpdateForAllMonth: Boolean
 }

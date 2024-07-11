@@ -23,7 +23,6 @@ export class ForecastService {
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
   ) {}
-
   async create(
     user: User,
     createForecastInput: CreateForecastInput,
@@ -46,18 +45,67 @@ export class ForecastService {
         companyId,
         staffId,
       );
+    const forecasts: Forecast[] = [];
+    const payDateObj = new Date(payDate);
 
-    const forecasts = this.generateForecasts({
-      amount,
-      comment,
-      expenseCategory,
-      expenseSubCategory,
-      user,
-      userEntity,
-      payDate,
-      company,
-      isGenerateForAllMonth,
-    });
+    if (isGenerateForAllMonth) {
+      let savedForecast: Forecast | null = null;
+      const year: number = 2023;
+
+      for (let i = 0; i < 12; i++) {
+        const forecastDate = new Date(year, 3 + i, payDateObj.getDate());
+        console.log(forecastDate);
+        if (i === 0) {
+          const forecast = this.forecastRepository.create({
+            amount,
+            comment,
+            payDate: forecastDate,
+            expenseCategory,
+            expenseSubCategory,
+            createdBy: user,
+            updatedBy: user,
+            staff: userEntity,
+            company,
+          });
+          savedForecast = await this.forecastRepository.save(forecast);
+          savedForecast.relatedForecastId = savedForecast.id;
+          await this.forecastRepository.save(savedForecast);
+        } else {
+          const newEntity = this.forecastRepository.create({
+            amount,
+            comment,
+            expenseCategory,
+            expenseSubCategory,
+            createdBy: user,
+            updatedBy: user,
+            payDate: forecastDate,
+            staff: userEntity,
+            company,
+            relatedForecastId: savedForecast?.id,
+          });
+          await this.forecastRepository.save(newEntity);
+        }
+      }
+    } else {
+      const forecastDate = new Date(
+        2024,
+        payDateObj.getMonth(),
+        payDateObj.getDate(),
+      );
+      forecasts.push(
+        this.createForecastEntity({
+          amount,
+          comment,
+          expenseCategory,
+          expenseSubCategory,
+          user,
+          userEntity,
+          payDate: forecastDate,
+          company,
+          relatedForecastId: null,
+        }),
+      );
+    }
 
     return this.forecastRepository.save(forecasts);
   }
@@ -104,6 +152,7 @@ export class ForecastService {
       comment,
       companyId,
       staffId,
+      isUpdateForAllMonth,
     } = updateForecastInput;
     const [expenseCategory, expenseSubCategory, company, userEntity] =
       await this.checkExpenseCategoryAndStaffExists(
@@ -116,16 +165,42 @@ export class ForecastService {
       where: { id },
       relations: ['createdBy'],
     });
-    forecast.amount = amount;
-    forecast.expenseCategory = expenseCategory;
-    forecast.expenseSubCategory = expenseSubCategory;
-    forecast.payDate = payDate;
-    forecast.comment = comment;
-    forecast.staff = userEntity;
-    forecast.company = company;
-    forecast.updatedBy = user;
 
-    return await this.forecastRepository.save(forecast);
+    const payDateObj = new Date(payDate);
+    if (isUpdateForAllMonth && forecast?.relatedForecastId) {
+      const forecasts = await this.forecastRepository.findBy({
+        relatedForecastId: forecast.relatedForecastId,
+      });
+
+      for (const eachForecast of forecasts) {
+        const forecastDate = new Date(
+          2024,
+          eachForecast.payDate?.getMonth() ?? 1,
+          payDateObj.getDate(),
+        );
+        eachForecast.amount = amount;
+        eachForecast.expenseCategory = expenseCategory;
+        eachForecast.expenseSubCategory = expenseSubCategory;
+        eachForecast.payDate = forecastDate;
+        eachForecast.comment = comment;
+        eachForecast.staff = userEntity;
+        eachForecast.company = company;
+        eachForecast.updatedBy = user;
+      }
+
+      return await this.forecastRepository.save(forecasts);
+    } else {
+      forecast.amount = amount;
+      forecast.expenseCategory = expenseCategory;
+      forecast.expenseSubCategory = expenseSubCategory;
+      forecast.payDate = payDate;
+      forecast.comment = comment;
+      forecast.staff = userEntity;
+      forecast.company = company;
+      forecast.updatedBy = user;
+
+      return await this.forecastRepository.save(forecast);
+    }
   }
 
   async remove(id: number) {
@@ -167,15 +242,15 @@ export class ForecastService {
     payDate: Date;
     company: Company;
     isGenerateForAllMonth: boolean | undefined;
-  }): Forecast[] {
+    relatedForecastId: Forecast | null;
+  }): any {
     const { isGenerateForAllMonth } = params;
-
     return isGenerateForAllMonth
-      ? this.createMonthlyForecasts(params)
+      ? this.createMonthlyForecastForFinancialYear(params)
       : [this.createForecastEntity(params)];
   }
 
-  private createMonthlyForecasts(params: {
+  private async createMonthlyForecastForFinancialYear(params: {
     amount: number;
     comment: string;
     expenseCategory: ExpenseCategory;
@@ -184,7 +259,7 @@ export class ForecastService {
     userEntity: User | null;
     payDate: Date;
     company: Company;
-  }): Forecast[] {
+  }): Promise<Forecast[]> {
     const {
       amount,
       comment,
@@ -195,25 +270,53 @@ export class ForecastService {
       payDate,
       company,
     } = params;
-    const year = payDate.getFullYear();
-    const forecasts: Forecast[] = [];
 
-    for (let month = 0; month < 12; month++) {
-      const monthlyPayDate = new Date(year, month, payDate.getDate());
-      forecasts.push(
-        this.createForecastEntity({
+    const payDateObj = new Date(payDate);
+    const month = payDateObj.getMonth() + 1;
+
+    let startYear: number;
+    if (month >= 4) {
+      startYear = 2024;
+    } else {
+      startYear = 2024 - 1;
+    }
+    const forecasts: Forecast[] = [];
+    let savedForecast: Forecast | null = null;
+
+    for (let i = 0; i < 12; i++) {
+      const forecastDate = new Date(startYear, 3 + i, 1);
+      if (i === 0) {
+        const forecast = this.forecastRepository.create({
           amount,
           comment,
+          payDate: forecastDate.toISOString().split('T')[0],
           expenseCategory,
           expenseSubCategory,
-          user,
-          userEntity,
-          payDate: monthlyPayDate,
+          createdBy: user,
+          updatedBy: user,
+          staff: userEntity,
           company,
-        }),
-      );
+        });
+        savedForecast = await this.forecastRepository.save({ ...forecast });
+        savedForecast.relatedForecastId = savedForecast.id;
+        await this.forecastRepository.save(savedForecast);
+      } else {
+        forecasts.push(
+          this.forecastRepository.create({
+            amount,
+            comment,
+            payDate: forecastDate.toISOString().split('T')[0],
+            expenseCategory,
+            expenseSubCategory,
+            createdBy: user,
+            updatedBy: user,
+            staff: userEntity,
+            company,
+            relatedForecastId: savedForecast?.id,
+          }),
+        );
+      }
     }
-
     return forecasts;
   }
 
@@ -224,8 +327,9 @@ export class ForecastService {
     expenseSubCategory: ExpenseSubCategory;
     user: User;
     userEntity: User | null;
-    payDate: Date;
+    payDate: Date | string;
     company: Company;
+    relatedForecastId: Forecast | null;
   }): Forecast {
     const {
       amount,
@@ -236,8 +340,8 @@ export class ForecastService {
       userEntity,
       payDate,
       company,
+      relatedForecastId,
     } = params;
-
     return this.forecastRepository.create({
       amount,
       comment,
@@ -248,6 +352,7 @@ export class ForecastService {
       payDate,
       staff: userEntity,
       company,
+      relatedForecastId: relatedForecastId?.id,
     });
   }
 }
