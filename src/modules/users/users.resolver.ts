@@ -8,6 +8,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/decorators/loggin.user';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles';
+import { UserRoles } from '../roles/entities/role.entity';
 
 @Resolver(() => User)
 @UseGuards(AuthGuard, RolesGuard)
@@ -15,8 +16,12 @@ export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
   @Mutation(() => User)
-  createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
-    return this.usersService.create(createUserInput);
+  @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
+  createUser(
+    @CurrentUser() user: User,
+    @Args('createUserInput') createUserInput: CreateUserInput,
+  ) {
+    return this.usersService.create(user, createUserInput);
   }
 
   @Query(() => [User], { name: 'users' })

@@ -27,18 +27,15 @@ export class User {
 
   @Field()
   @Column()
-  @IsNotEmpty()
   @Length(3, 20)
   name: string;
 
   @Field()
   @Column()
-  @IsEmail()
   email: string;
 
   @Field()
   @Column()
-  @IsOptional()
   password: string;
 
   @Field()
