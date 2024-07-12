@@ -30,8 +30,10 @@ export class ForecastResolver {
   findAll(
     @Args('perPage', { type: () => Int, defaultValue: 10 }) perPage: number,
     @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
+    @Args('companyId', { type: () => Int, defaultValue: null })
+    companyId: number | null,
   ) {
-    return this.forecastService.findAll(perPage, page);
+    return this.forecastService.findAll(perPage, page, (companyId = null));
   }
 
   @Query(() => Forecast, { name: 'forecast' })
@@ -40,7 +42,7 @@ export class ForecastResolver {
     return this.forecastService.findOne(id);
   }
 
-  @Mutation(() => Forecast)
+  @Mutation(() => [Forecast])
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   updateForecast(
     @CurrentUser() user: User,
@@ -53,5 +55,16 @@ export class ForecastResolver {
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   removeForecast(@Args('id', { type: () => Int }) id: number) {
     return this.forecastService.remove(id);
+  }
+
+  @Query(() => Number)
+  @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
+  calculateForecast(
+    @Args('month', { type: () => Int, nullable: true })
+    month: number | null,
+    @Args('companyId', { type: () => Int, nullable: true })
+    companyId: number | null,
+  ) {
+    return this.forecastService.calculateForecast(month, companyId);
   }
 }

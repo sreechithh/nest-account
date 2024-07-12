@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, Repository } from 'typeorm';
+import { FindManyOptions, Raw, Repository } from 'typeorm';
 import { Forecast } from './entities/forecast.entity';
 import { User } from '../users/entities/user.entity';
 import { ExpenseSubCategory } from '../expense-sub-category/entities/expense-sub-category.entity';
@@ -8,6 +8,7 @@ import { ExpenseCategory } from '../expense-category/entities/expense-category.e
 import { CreateForecastInput } from './dto/create-forecast.input';
 import { UpdateForecastInput } from './dto/update-forecast.input';
 import { Company } from '../company/entities/company.entity';
+const defaultForecastYear: number = 2023;
 
 @Injectable()
 export class ForecastService {
@@ -23,6 +24,7 @@ export class ForecastService {
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
   ) {}
+
   async create(
     user: User,
     createForecastInput: CreateForecastInput,
@@ -45,75 +47,131 @@ export class ForecastService {
         companyId,
         staffId,
       );
-    const forecasts: Forecast[] = [];
     const payDateObj = new Date(payDate);
+    const forecasts: Forecast[] = [];
 
     if (isGenerateForAllMonth) {
-      let savedForecast: Forecast | null = null;
-      const year: number = 2023;
-
-      for (let i = 0; i < 12; i++) {
-        const forecastDate = new Date(year, 3 + i, payDateObj.getDate());
-        console.log(forecastDate);
-        if (i === 0) {
-          const forecast = this.forecastRepository.create({
-            amount,
-            comment,
-            payDate: forecastDate,
-            expenseCategory,
-            expenseSubCategory,
-            createdBy: user,
-            updatedBy: user,
-            staff: userEntity,
-            company,
-          });
-          savedForecast = await this.forecastRepository.save(forecast);
-          savedForecast.relatedForecastId = savedForecast.id;
-          await this.forecastRepository.save(savedForecast);
-        } else {
-          const newEntity = this.forecastRepository.create({
-            amount,
-            comment,
-            expenseCategory,
-            expenseSubCategory,
-            createdBy: user,
-            updatedBy: user,
-            payDate: forecastDate,
-            staff: userEntity,
-            company,
-            relatedForecastId: savedForecast?.id,
-          });
-          await this.forecastRepository.save(newEntity);
-        }
-      }
+      const savedForecast = await this.generateForecastsForYear(
+        user,
+        amount,
+        comment,
+        expenseCategory,
+        expenseSubCategory,
+        company,
+        userEntity,
+        payDateObj,
+      );
+      forecasts.push(...savedForecast);
     } else {
       const forecastDate = new Date(
-        2024,
+        payDateObj.getMonth() < 3
+          ? defaultForecastYear + 1
+          : defaultForecastYear,
         payDateObj.getMonth(),
         payDateObj.getDate(),
       );
-      forecasts.push(
-        this.createForecastEntity({
-          amount,
-          comment,
-          expenseCategory,
-          expenseSubCategory,
-          user,
-          userEntity,
-          payDate: forecastDate,
-          company,
-          relatedForecastId: null,
-        }),
-      );
+      const forecast = this.createForecastEntity({
+        amount,
+        comment,
+        expenseCategory,
+        expenseSubCategory,
+        user,
+        userEntity,
+        payDate: forecastDate,
+        company,
+        relatedForecastId: null,
+      });
+      forecasts.push(forecast);
     }
 
     return this.forecastRepository.save(forecasts);
   }
 
+  private async generateForecastsForYear(
+    user: User,
+    amount: number,
+    comment: string,
+    expenseCategory: ExpenseCategory,
+    expenseSubCategory: ExpenseSubCategory,
+    company: Company,
+    userEntity: User | null,
+    payDateObj: Date,
+  ): Promise<Forecast[]> {
+    const forecasts: Forecast[] = [];
+    let savedForecast: Forecast | null = null;
+
+    for (let i = 0; i < 12; i++) {
+      const forecastDate = new Date(
+        defaultForecastYear,
+        3 + i,
+        payDateObj.getDate(),
+      );
+
+      const forecast = this.createForecastEntity({
+        amount,
+        comment,
+        expenseCategory,
+        expenseSubCategory,
+        user,
+        userEntity,
+        payDate: forecastDate,
+        company,
+        relatedForecastId: savedForecast ? savedForecast.id : null,
+      });
+
+      const savedEntity = await this.forecastRepository.save(forecast);
+
+      if (i === 0) {
+        savedForecast = savedEntity;
+        savedForecast.relatedForecastId = savedForecast.id;
+        await this.forecastRepository.save(savedForecast);
+      }
+
+      forecasts.push(savedEntity);
+    }
+
+    return forecasts;
+  }
+
+  private createForecastEntity({
+    amount,
+    comment,
+    expenseCategory,
+    expenseSubCategory,
+    user,
+    userEntity,
+    payDate,
+    company,
+    relatedForecastId,
+  }: {
+    amount: number;
+    comment: string;
+    expenseCategory: ExpenseCategory;
+    expenseSubCategory: ExpenseSubCategory;
+    user: User;
+    userEntity: User | null;
+    payDate: Date;
+    company: Company;
+    relatedForecastId: number | null;
+  }): Forecast {
+    return this.forecastRepository.create({
+      amount,
+      comment,
+      payDate,
+      expenseCategory,
+      expenseSubCategory,
+      createdBy: user,
+      updatedBy: user,
+      staff: userEntity,
+      company,
+      relatedForecastId: relatedForecastId,
+    });
+  }
+
   findAll(
     perPage: number,
     page: number,
-    searchQuery?: string,
+    companyId?: number | null,
   ): Promise<Forecast[]> {
     const options: FindManyOptions<Forecast> = {
       take: perPage,
@@ -125,7 +183,12 @@ export class ForecastService {
         'updatedBy',
         'company',
       ],
+      where: {},
     };
+
+    if (companyId) {
+      options.where = { ...options.where, company: { id: companyId } };
+    }
     return this.forecastRepository.find(options);
   }
 
@@ -154,6 +217,7 @@ export class ForecastService {
       staffId,
       isUpdateForAllMonth,
     } = updateForecastInput;
+
     const [expenseCategory, expenseSubCategory, company, userEntity] =
       await this.checkExpenseCategoryAndStaffExists(
         expenseCategoryId,
@@ -161,50 +225,50 @@ export class ForecastService {
         companyId,
         staffId,
       );
+
     const forecast = await this.forecastRepository.findOneOrFail({
       where: { id },
       relations: ['createdBy'],
     });
 
+    const forecasts =
+      forecast.relatedForecastId && isUpdateForAllMonth
+        ? await this.forecastRepository.find({
+            where: { relatedForecastId: forecast.relatedForecastId },
+            relations: ['createdBy'],
+          })
+        : [forecast];
+
     const payDateObj = new Date(payDate);
-    if (isUpdateForAllMonth && forecast?.relatedForecastId) {
-      const forecasts = await this.forecastRepository.findBy({
-        relatedForecastId: forecast.relatedForecastId,
-      });
 
-      for (const eachForecast of forecasts) {
-        const forecastDate = new Date(
-          2024,
-          eachForecast.payDate?.getMonth() ?? 1,
-          payDateObj.getDate(),
-        );
-        eachForecast.amount = amount;
-        eachForecast.expenseCategory = expenseCategory;
-        eachForecast.expenseSubCategory = expenseSubCategory;
-        eachForecast.payDate = forecastDate;
-        eachForecast.comment = comment;
-        eachForecast.staff = userEntity;
-        eachForecast.company = company;
-        eachForecast.updatedBy = user;
-      }
+    forecasts.forEach((eachForecast) => {
+      eachForecast.amount = amount;
+      eachForecast.expenseCategory = expenseCategory;
+      eachForecast.expenseSubCategory = expenseSubCategory;
+      eachForecast.payDate = new Date(
+        eachForecast.payDate?.getFullYear() ?? defaultForecastYear,
+        eachForecast.payDate?.getMonth() ?? 1,
+        payDateObj.getDate(),
+      );
+      eachForecast.comment = comment;
+      eachForecast.staff = userEntity;
+      eachForecast.company = company;
+      eachForecast.updatedBy = user;
+    });
 
-      return await this.forecastRepository.save(forecasts);
-    } else {
-      forecast.amount = amount;
-      forecast.expenseCategory = expenseCategory;
-      forecast.expenseSubCategory = expenseSubCategory;
-      forecast.payDate = payDate;
-      forecast.comment = comment;
-      forecast.staff = userEntity;
-      forecast.company = company;
-      forecast.updatedBy = user;
-
-      return await this.forecastRepository.save(forecast);
-    }
+    return this.forecastRepository.save(forecasts);
   }
 
   async remove(id: number) {
     const forecast = await this.forecastRepository.findOneByOrFail({ id });
+
+    if (forecast.relatedForecastId) {
+      await this.forecastRepository.delete({
+        relatedForecastId: forecast.relatedForecastId,
+      });
+
+      return `ID with #${id} has been removed from forecast with all related forecasts`;
+    }
     await this.forecastRepository.remove(forecast);
 
     return `ID with #${id} has been removed from forecast`;
@@ -232,127 +296,23 @@ export class ForecastService {
     ]);
   }
 
-  private generateForecasts(params: {
-    amount: number;
-    comment: string;
-    expenseCategory: ExpenseCategory;
-    expenseSubCategory: ExpenseSubCategory;
-    user: User;
-    userEntity: User | null;
-    payDate: Date;
-    company: Company;
-    isGenerateForAllMonth: boolean | undefined;
-    relatedForecastId: Forecast | null;
-  }): any {
-    const { isGenerateForAllMonth } = params;
-    return isGenerateForAllMonth
-      ? this.createMonthlyForecastForFinancialYear(params)
-      : [this.createForecastEntity(params)];
-  }
+  async calculateForecast(
+    month: number | null = null,
+    companyId: number | null = null,
+  ): Promise<number> {
+    const conditions: any = {};
 
-  private async createMonthlyForecastForFinancialYear(params: {
-    amount: number;
-    comment: string;
-    expenseCategory: ExpenseCategory;
-    expenseSubCategory: ExpenseSubCategory;
-    user: User;
-    userEntity: User | null;
-    payDate: Date;
-    company: Company;
-  }): Promise<Forecast[]> {
-    const {
-      amount,
-      comment,
-      expenseCategory,
-      expenseSubCategory,
-      user,
-      userEntity,
-      payDate,
-      company,
-    } = params;
-
-    const payDateObj = new Date(payDate);
-    const month = payDateObj.getMonth() + 1;
-
-    let startYear: number;
-    if (month >= 4) {
-      startYear = 2024;
-    } else {
-      startYear = 2024 - 1;
+    if (month !== null) {
+      conditions.payDate = Raw(
+        (alias) => `EXTRACT(MONTH FROM ${alias}) = :month`,
+        { month },
+      );
     }
-    const forecasts: Forecast[] = [];
-    let savedForecast: Forecast | null = null;
-
-    for (let i = 0; i < 12; i++) {
-      const forecastDate = new Date(startYear, 3 + i, 1);
-      if (i === 0) {
-        const forecast = this.forecastRepository.create({
-          amount,
-          comment,
-          payDate: forecastDate.toISOString().split('T')[0],
-          expenseCategory,
-          expenseSubCategory,
-          createdBy: user,
-          updatedBy: user,
-          staff: userEntity,
-          company,
-        });
-        savedForecast = await this.forecastRepository.save({ ...forecast });
-        savedForecast.relatedForecastId = savedForecast.id;
-        await this.forecastRepository.save(savedForecast);
-      } else {
-        forecasts.push(
-          this.forecastRepository.create({
-            amount,
-            comment,
-            payDate: forecastDate.toISOString().split('T')[0],
-            expenseCategory,
-            expenseSubCategory,
-            createdBy: user,
-            updatedBy: user,
-            staff: userEntity,
-            company,
-            relatedForecastId: savedForecast?.id,
-          }),
-        );
-      }
+    if (companyId !== null) {
+      conditions.company = { id: companyId };
     }
-    return forecasts;
-  }
+    const sum = await this.forecastRepository.sum('amount', conditions);
 
-  private createForecastEntity(params: {
-    amount: number;
-    comment: string;
-    expenseCategory: ExpenseCategory;
-    expenseSubCategory: ExpenseSubCategory;
-    user: User;
-    userEntity: User | null;
-    payDate: Date | string;
-    company: Company;
-    relatedForecastId: Forecast | null;
-  }): Forecast {
-    const {
-      amount,
-      comment,
-      expenseCategory,
-      expenseSubCategory,
-      user,
-      userEntity,
-      payDate,
-      company,
-      relatedForecastId,
-    } = params;
-    return this.forecastRepository.create({
-      amount,
-      comment,
-      expenseCategory,
-      expenseSubCategory,
-      createdBy: user,
-      updatedBy: user,
-      payDate,
-      staff: userEntity,
-      company,
-      relatedForecastId: relatedForecastId?.id,
-    });
+    return sum || 0;
   }
 }

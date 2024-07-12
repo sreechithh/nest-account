@@ -70,6 +70,6 @@ export class Forecast {
   @Field(() => Company)
   company: Company;
 
-  @Column({ nullable: true })
-  relatedForecastId?: number;
+  @Column({ type: 'int', nullable: true })
+  relatedForecastId?: number | null;
 }

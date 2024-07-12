@@ -120,8 +120,9 @@ type Query {
   company(id: Int!): Company!
   bankTransactions(pageSize: Int! = 10, pageNumber: Int! = 1): [BankTransaction!]!
   bankTransaction(id: Int!): BankTransaction!
-  forecasts(perPage: Int! = 10, page: Int! = 1): [Forecast!]!
+  forecasts(perPage: Int! = 10, page: Int! = 1, companyId: Int!): [Forecast!]!
   forecast(id: Int!): Forecast!
+  calculateForecast(month: Int, companyId: Int): Float!
 }
 
 type Mutation {
@@ -144,7 +145,7 @@ type Mutation {
   createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): BankTransaction!
   removeBankTransaction(id: Int!): String!
   createForecast(createForecastInput: CreateForecastInput!): [Forecast!]!
-  updateForecast(updateForecastInput: UpdateForecastInput!): Forecast!
+  updateForecast(updateForecastInput: UpdateForecastInput!): [Forecast!]!
   removeForecast(id: Int!): String!
 }
 
