@@ -50,7 +50,7 @@ export class CompanyResolver {
     return this.companyService.update(updateCompanyInput);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => String)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   async deleteCompany(
     @Args('id', { type: () => Int }) id: number,

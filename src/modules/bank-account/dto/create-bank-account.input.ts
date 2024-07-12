@@ -16,13 +16,9 @@ export class CreateBankAccountInput {
 
   @Field()
   @IsNotEmpty()
+  @IsNumber()
   @IsUnique(BankAccount, {
     message: 'Account Number is already in use.',
   })
-  accountNumber: string;
-
-  @Field()
-  @IsNotEmpty()
-  @IsNumber()
-  bankBalance: number;
+  accountNumber: number;
 }

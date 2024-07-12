@@ -19,7 +19,6 @@ type Company {
   id: Int!
   name: String!
   isActive: Boolean!
-  salaryDate: Float!
   createdAt: DateTime!
   updatedAt: DateTime!
   bankAccounts: [BankAccount!]!
@@ -28,15 +27,15 @@ type Company {
 type BankAccount {
   id: ID!
   name: String!
-  accountNumber: String!
+  accountNumber: Float!
   createdAt: DateTime!
   updatedAt: DateTime!
   createdBy: Float!
   updatedBy: Float!
   isActive: Boolean!
-  bankBalance: Float!
+  bankBalance: Float
   company: Company!
-  bankTransactions: [BankTransaction!]!
+  bankTransactions: [BankTransaction!]
 }
 
 type BankTransaction {
@@ -92,6 +91,21 @@ type ExpenseCategory {
   updatedAt: DateTime!
 }
 
+type Forecast {
+  id: ID!
+  amount: Float!
+  comment: String!
+  payDate: DateTime
+  expenseCategory: ExpenseCategory!
+  expenseSubCategory: ExpenseSubCategory!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User!
+  updatedBy: User!
+  staff: User
+  company: Company!
+}
+
 type Query {
   users: [User!]!
   user(id: Int!): User!
@@ -106,6 +120,9 @@ type Query {
   company(id: Int!): Company!
   bankTransactions(pageSize: Int! = 10, pageNumber: Int! = 1): [BankTransaction!]!
   bankTransaction(id: Int!): BankTransaction!
+  forecasts(perPage: Int! = 10, page: Int! = 1, companyId: Int!): [Forecast!]!
+  forecast(id: Int!): Forecast!
+  calculateForecast(month: Int, companyId: Int): Float!
 }
 
 type Mutation {
@@ -124,9 +141,12 @@ type Mutation {
   removeExpenseSubCategory(id: Int!): ExpenseSubCategory!
   createCompany(createCompanyInput: CreateCompanyInput!): Company!
   updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
-  deleteCompany(id: Int!): Boolean!
+  deleteCompany(id: Int!): String!
   createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): BankTransaction!
   removeBankTransaction(id: Int!): String!
+  createForecast(createForecastInput: CreateForecastInput!): [Forecast!]!
+  updateForecast(updateForecastInput: UpdateForecastInput!): [Forecast!]!
+  removeForecast(id: Int!): String!
 }
 
 input CreateUserInput {
@@ -143,15 +163,14 @@ input UpdateUserInput {
 input CreateBankAccountInput {
   companyId: Int!
   name: String!
-  accountNumber: String!
-  bankBalance: Float!
+  accountNumber: Float!
 }
 
 input UpdateBankAccountInput {
   id: Int!
   companyId: Float!
   name: String!
-  accountNumber: String!
+  accountNumber: Float!
   isActive: Boolean!
 }
 
@@ -180,13 +199,11 @@ input UpdateExpenseSubCategoryInput {
 
 input CreateCompanyInput {
   name: String!
-  salaryDate: Float!
 }
 
 input UpdateCompanyInput {
   id: ID!
   name: String!
-  salaryDate: Float!
   isActive: Boolean!
 }
 
@@ -195,4 +212,28 @@ input CreateBankTransactionInput {
   amount: Float!
   type: String!
   comment: String!
+}
+
+input CreateForecastInput {
+  amount: Float!
+  comment: String!
+  payDate: DateTime!
+  expenseCategoryId: Float!
+  expenseSubCategoryId: Float!
+  staffId: Int
+  companyId: Int!
+  isGenerateForAllMonth: Boolean
+}
+
+input UpdateForecastInput {
+  amount: Float!
+  comment: String!
+  payDate: DateTime!
+  expenseCategoryId: Float!
+  expenseSubCategoryId: Float!
+  staffId: Int
+  companyId: Int!
+  isGenerateForAllMonth: Boolean
+  id: Int!
+  isUpdateForAllMonth: Boolean
 }

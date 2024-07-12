@@ -19,10 +19,11 @@ export class UpdateBankAccountInput {
 
   @Field()
   @IsNotEmpty()
+  @IsNumber()
   @IsUnique(BankAccount, {
     message: 'Account Number is already in use.',
   })
-  accountNumber: string;
+  accountNumber: number;
 
   @Field()
   @IsBoolean()

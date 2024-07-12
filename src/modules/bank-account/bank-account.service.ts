@@ -27,37 +27,24 @@ export class BankAccountService {
     user: User,
     createBankAccountInput: CreateBankAccountInput,
   ): Promise<any> {
-    const { name, companyId, accountNumber, bankBalance } =
-      createBankAccountInput;
+    const { name, companyId, accountNumber } = createBankAccountInput;
 
-    return await this.dataSource.transaction(async (manager) => {
-      const company = await manager.findOneOrFail(Company, {
-        where: { id: companyId },
-      });
-      const bankAccount = manager.create(BankAccount, {
-        name,
-        accountNumber,
-        company,
-        createdBy: user.id,
-        updatedBy: user.id,
-      });
-      const bankEntity = await manager.save(BankAccount, bankAccount);
-      const bankTransaction = manager.create(BankTransaction, {
-        bankId: bankEntity.id,
-        amount: bankBalance,
-        type: TransactionType.CREDIT,
-        createdBy: user.id,
-        comment: 'initial balance',
-      });
-      await manager.save(BankTransaction, bankTransaction);
-      const savedBankEntity = await manager.findOneOrFail(BankAccount, {
-        where: { id: bankEntity.id },
-        relations: ['bankTransactions'],
-      });
-      const netBalance = await this.getBankBalance(bankEntity.id);
-
-      return { ...savedBankEntity, bankBalance: netBalance };
+    const company = await this.companyRepository.findOne({
+      where: { id: companyId },
     });
+
+    if (!company) {
+      throw new NotFoundException(`Company with ID ${companyId} not found`);
+    }
+    const bankAccount = this.bankAccountRepository.create({
+      name,
+      accountNumber,
+      company,
+      createdBy: user.id,
+      updatedBy: user.id,
+    });
+
+    return await this.bankAccountRepository.save(bankAccount);
   }
 
   async findAll(): Promise<any[]> {
@@ -92,26 +79,20 @@ export class BankAccountService {
     const company = await this.companyRepository.findOneByOrFail({
       id: companyId,
     });
-    const bankAccount = await this.bankAccountRepository.preload({
-      id,
-      accountNumber,
-      company,
-      name,
-      isActive,
-      updatedBy: user.id,
-    });
-
-    if (!bankAccount) {
-      throw new NotFoundException(`BankAccount with ID ${id} not found`);
-    }
-    const savedBankEntity = await this.bankAccountRepository.save(bankAccount);
-    const netBalance = await this.getBankBalance(id);
-    const bankEntity = await this.bankAccountRepository.findOneOrFail({
-      where: { id: savedBankEntity.id },
+    const bankAccount = await this.bankAccountRepository.findOneOrFail({
+      where: { id },
       relations: ['bankTransactions', 'company'],
     });
+    bankAccount.id = id;
+    bankAccount.accountNumber = accountNumber;
+    bankAccount.company = company;
+    bankAccount.name = name;
+    bankAccount.isActive = isActive;
+    bankAccount.updatedBy = user.id;
+    const savedBankEntity = await this.bankAccountRepository.save(bankAccount);
+    const netBalance = await this.getBankBalance(id);
 
-    return { ...bankEntity, bankBalance: netBalance };
+    return { ...savedBankEntity, bankBalance: netBalance };
   }
 
   async remove(id: number): Promise<void> {

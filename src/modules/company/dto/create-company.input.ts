@@ -7,7 +7,4 @@ export class CreateCompanyInput {
   @IsString()
   @IsNotEmpty()
   name: string;
-
-  @Field()
-  salaryDate: number;
 }
