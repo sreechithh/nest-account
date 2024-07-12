@@ -26,7 +26,7 @@ export class BankAccount {
 
   @Field()
   @Column({ unique: true })
-  accountNumber: string;
+  accountNumber: number;
 
   @Field()
   @CreateDateColumn()
@@ -48,14 +48,16 @@ export class BankAccount {
   @Column({ default: true })
   isActive: boolean;
 
-  @Field()
-  bankBalance: number;
+  @Field({ nullable: true })
+  bankBalance?: number;
 
   @Field()
   @ManyToOne(() => Company)
   company: Company;
 
-  @OneToMany(() => BankTransaction, (transaction) => transaction.bankAccount)
-  @Field(() => [BankTransaction])
+  @OneToMany(() => BankTransaction, (transaction) => transaction.bankAccount, {
+    nullable: true,
+  })
+  @Field(() => [BankTransaction], { nullable: true })
   bankTransactions?: BankTransaction[];
 }

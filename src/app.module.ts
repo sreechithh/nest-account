@@ -16,6 +16,7 @@ import { ExpenseCategoryModule } from './modules/expense-category/expense-catego
 import { ExpenseSubCategoryModule } from './modules/expense-sub-category/expense-sub-category.module';
 import { BankTransactionsModule } from './modules/bank-transactions/bank-transactions.module';
 import { StaffModule } from './modules/staff/staff.module';
+import { ForecastModule } from './modules/forecast/forecast.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { StaffModule } from './modules/staff/staff.module';
     CompanyModule,
     BankTransactionsModule,
     StaffModule,
+    ForecastModule,
   ],
   providers: [IsUniqueConstraint],
 })
