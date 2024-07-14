@@ -11,6 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 import { BankTransaction } from '../bank-transactions/entities/bank-transaction.entity';
 import { BankAccount } from '../bank-account/entities/bank-account.entity';
 import { BankTransactionsModule } from '../bank-transactions/bank-transactions.module';
+import { Company } from '../company/entities/company.entity';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { BankTransactionsModule } from '../bank-transactions/bank-transactions.m
       EmployeeExpense,
       BankTransaction,
       BankAccount,
+      Company,
     ]),
     BankTransactionsModule,
   ],

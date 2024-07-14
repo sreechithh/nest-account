@@ -10,6 +10,8 @@ import { ExpenseSubCategory } from '../expense-sub-category/entities/expense-sub
 import { EmployeeExpense } from '../employee-expense/entities/employee-expense.entity';
 import { User } from '../users/entities/user.entity';
 import { BankTransaction } from '../bank-transactions/entities/bank-transaction.entity';
+import { BankAccount } from '../bank-account/entities/bank-account.entity';
+import { Company } from '../company/entities/company.entity';
 
 @Injectable()
 export class ExpenseService {
@@ -22,10 +24,14 @@ export class ExpenseService {
     private readonly expenseSubCategoryRepository: Repository<ExpenseSubCategory>,
     @InjectRepository(EmployeeExpense)
     private readonly employeeExpenseRepository: Repository<EmployeeExpense>,
+    @InjectRepository(BankTransaction)
+    private bankTransactionRepository: Repository<BankTransaction>,
+    @InjectRepository(BankAccount)
+    private bankAccountRepository: Repository<BankAccount>,
+    @InjectRepository(Company)
+    private companyRepository: Repository<Company>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(BankTransaction)
-    private readonly bankTransactionRepository: Repository<BankTransaction>,
     @InjectDataSource() private dataSource: DataSource,
   ) {}
 
@@ -40,6 +46,7 @@ export class ExpenseService {
         isPaymentRequest,
         paidDate,
         employeeId,
+        companyId,
         bankId,
         ...expenseData
       } = createExpenseInput;
@@ -52,6 +59,12 @@ export class ExpenseService {
           `ExpenseCategory with ID ${expenseCategoryId} not found`,
         );
       }
+      const company = await manager.findOne(Company, {
+        where: { id: companyId },
+      });
+      if (!company) {
+        throw new NotFoundException(`Company with ID ${companyId} not found`);
+      }
 
       const expenseSubCategory = await manager.findOneOrFail(
         ExpenseSubCategory,
@@ -59,6 +72,9 @@ export class ExpenseService {
           where: { id: expenseSubCategoryId },
         },
       );
+      const bank = await manager.findOneOrFail(BankAccount, {
+        where: { id: bankId },
+      });
 
       const finalStatus = isPaymentRequest
         ? ExpenseStatus.PENDING
@@ -93,6 +109,7 @@ export class ExpenseService {
       const expense = manager.create(Expense, {
         ...expenseData,
         status: finalStatus,
+        company,
         expenseCategory,
         expenseSubCategory,
         isPaymentRequest,
@@ -185,15 +202,18 @@ export class ExpenseService {
   ): Promise<Expense> {
     return await this.dataSource.transaction(async (manager) => {
       const {
+        companyId,
         expenseCategoryId,
         expenseSubCategoryId,
         paidDate,
         employeeId,
+        bankId,
         ...expenseData
       } = updateExpenseInput;
 
       const expense = await manager.findOne(Expense, {
         where: { id },
+        relations: ['bankTransaction', 'employeeExpense'],
       });
 
       if (!expense) {
@@ -201,27 +221,33 @@ export class ExpenseService {
       }
 
       if (
-        expense.status == ExpenseStatus.APPROVED ||
-        expense.status == ExpenseStatus.REJECTED ||
+        expense.status === ExpenseStatus.APPROVED ||
+        expense.status === ExpenseStatus.REJECTED ||
         expense.adminResponse
       ) {
         throw new Error(
-          `Expense Approved or Rejected bv the admin cannot be updated`,
+          'Expense Approved or Rejected by the admin cannot be updated',
         );
       }
 
       const originalCategoryId = expense.expenseCategoryId;
       const isCategoryChanged = originalCategoryId !== expenseCategoryId;
-      console.log(expenseCategoryId);
 
       const expenseCategory = await manager.findOne(ExpenseCategory, {
         where: { id: expenseCategoryId },
       });
       if (!expenseCategory) {
         throw new NotFoundException(
-          `ExpenseCategory with ID ${expenseCategoryId} Not Found`,
+          `ExpenseCategory with ID ${expenseCategoryId} Not Found,`,
         );
       }
+      const company = await manager.findOne(Company, {
+        where: { id: companyId },
+      });
+      if (!company) {
+        throw new NotFoundException(`Company with ID ${companyId} Not Found`);
+      }
+
       const expenseSubCategory = await manager.findOne(ExpenseSubCategory, {
         where: { id: expenseSubCategoryId },
       });
@@ -231,16 +257,38 @@ export class ExpenseService {
         );
       }
 
-      const paidAt = expense.status === ExpenseStatus.PAID ? new Date() : null;
+      const bank = bankId
+        ? await this.bankAccountRepository.findOne({
+            where: { id: bankId },
+          })
+        : null;
+      if (bankId && !bank) {
+        throw new NotFoundException(`Bank Account with ID ${bankId} not found`);
+      }
 
+      if (expense.bankTransaction) {
+        await manager.remove(BankTransaction, expense.bankTransaction);
+      }
+      if (bank) {
+        const newBankTransaction = this.bankTransactionRepository.create({
+          bankId: bank.id,
+          amount: expenseData.amount,
+          comment: expenseData.comments || 'Updated expense payment',
+          type: 'debit',
+          createdBy: updatedBy,
+        });
+
+        await this.bankTransactionRepository.save(newBankTransaction);
+        expense.bankTransaction = newBankTransaction;
+      }
       Object.assign(expense, {
         ...expenseData,
+        company,
         expenseCategory,
         expenseSubCategory,
         paidDate,
         updatedBy,
         updatedAt: new Date(),
-        paidAt,
       });
 
       const updatedExpense = await manager.save(Expense, expense);
@@ -296,28 +344,36 @@ export class ExpenseService {
     });
   }
 
-  async remove(id: number): Promise<Expense> {
+  async remove(
+    id: number,
+  ): Promise<{ statusCode: number; message: string; data: Expense }> {
     return await this.dataSource.transaction(async (manager) => {
-      const expense = await this.findOne(id);
+      const expense = await manager.findOne(Expense, {
+        where: { id },
+        relations: ['employeeExpense', 'bankTransaction'],
+      });
+
+      if (!expense) {
+        throw new NotFoundException(`Expense with ID ${id} not found`);
+      }
 
       if (expense.employeeExpense) {
         await manager.remove(EmployeeExpense, expense.employeeExpense);
       }
 
-      if (expense.bankTransactionId) {
-        const bankTransaction = await this.bankTransactionRepository.findOne({
-          where: { id: expense.bankTransactionId },
-        });
-        if (bankTransaction) {
-          await manager.remove(BankTransaction, bankTransaction);
-        }
+      if (expense.bankTransaction) {
+        await manager.remove(BankTransaction, expense.bankTransaction);
       }
 
       await manager.remove(Expense, expense);
-      return { ...expense, id };
+
+      return {
+        statusCode: 200,
+        message: 'Expense deleted successfully',
+        data: expense,
+      };
     });
   }
-
   async approveExpenses(ids: number[]): Promise<boolean> {
     return await this.dataSource.transaction(async (manager) => {
       const expenses = await manager.find(Expense, {

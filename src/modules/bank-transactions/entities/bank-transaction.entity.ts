@@ -76,7 +76,7 @@ export class BankTransaction {
   @JoinColumn({ name: 'createdBy' })
   createdByUser: User;
 
-  @Field(() => Expense)
+  @Field(() => Expense, { nullable: true })
   @OneToOne(() => Expense, (expense) => expense.bankTransaction)
   expense: Expense;
 }

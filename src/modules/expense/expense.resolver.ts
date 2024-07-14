@@ -1,4 +1,12 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  Int,
+  ObjectType,
+  Field,
+} from '@nestjs/graphql';
 import { ExpenseService } from './expense.service';
 import { Expense } from './entities/expense.entity';
 import { CreateExpenseInput } from './dto/create-expense.input';
@@ -8,6 +16,18 @@ import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles';
+
+@ObjectType()
+class RemoveExpenseResponse {
+  @Field(() => Int)
+  statusCode: number;
+
+  @Field()
+  message: string;
+
+  @Field(() => Expense, { nullable: true })
+  data?: Expense;
+}
 
 @Resolver(() => Expense)
 @UseGuards(AuthGuard, RolesGuard)
@@ -49,10 +69,17 @@ export class ExpenseResolver {
     return this.expenseService.update(id, { ...updateExpenseInput }, user.id);
   }
 
-  @Mutation(() => Expense)
-  @Roles('admin', 'accountant')
-  removeExpense(@Args('id', { type: () => Int }) id: number): Promise<Expense> {
-    return this.expenseService.remove(id);
+  @Mutation(() => RemoveExpenseResponse)
+  async removeExpense(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<RemoveExpenseResponse> {
+    const result = await this.expenseService.remove(id);
+
+    return {
+      statusCode: result.statusCode,
+      message: result.message,
+      data: result.data,
+    };
   }
 
   @Mutation(() => Boolean)

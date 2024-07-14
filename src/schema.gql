@@ -71,7 +71,7 @@ type BankTransaction {
   bankBalance: Int
   bankAccount: BankAccount!
   createdByUser: User!
-  expense: Expense!
+  expense: Expense
 }
 
 enum TransactionType {
@@ -141,6 +141,12 @@ type LoginResponse {
   access_token: String!
 }
 
+type RemoveExpenseResponse {
+  statusCode: Int!
+  message: String!
+  data: Expense
+}
+
 type Query {
   users: [User!]!
   user(id: Int!): User!
@@ -175,7 +181,7 @@ type Mutation {
   removeExpenseSubCategory(id: Int!): ExpenseSubCategory!
   createExpense(createExpenseInput: CreateExpenseInput!): Expense!
   updateExpense(id: Int!, updateExpenseInput: UpdateExpenseInput!): Expense!
-  removeExpense(id: Int!): Expense!
+  removeExpense(id: Int!): RemoveExpenseResponse!
   approveExpenses(ids: [Int!]!): Boolean!
   rejectExpenses(ids: [Int!]!): Boolean!
   paidExpenses(ids: [Int!]!): Boolean!

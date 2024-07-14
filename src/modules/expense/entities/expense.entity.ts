@@ -102,11 +102,19 @@ export class Expense {
   expenseSubCategory: ExpenseSubCategory;
 
   @Field(() => EmployeeExpense, { nullable: true })
-  @OneToOne(() => EmployeeExpense, (employeeExpense) => employeeExpense.expense)
+  @OneToOne(
+    () => EmployeeExpense,
+    (employeeExpense) => employeeExpense.expense,
+    { nullable: true, onDelete: 'CASCADE' },
+  )
   employeeExpense: EmployeeExpense;
 
   @Field(() => BankTransaction, { nullable: true })
-  @OneToOne(() => BankTransaction, (bankTransaction) => bankTransaction.expense)
+  @OneToOne(
+    () => BankTransaction,
+    (bankTransaction) => bankTransaction.expense,
+    { nullable: true, onDelete: 'SET NULL', eager: true },
+  )
   @JoinColumn({ name: 'bankTransactionId' })
   bankTransaction: BankTransaction;
 
