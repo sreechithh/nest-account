@@ -15,12 +15,6 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-type Staff {
-  id: ID!
-  user: Int!
-  company: Company!
-}
-
 type ExpenseSubCategory {
   id: Int!
   expenseCategoryId: Float!
@@ -40,6 +34,12 @@ type ExpenseCategory {
   updatedAt: DateTime!
   subCategories: [ExpenseSubCategory!]
   expenses: [Expense!]
+}
+
+type Staff {
+  id: ID!
+  user: Int!
+  company: Company!
 }
 
 type Company {
@@ -179,6 +179,7 @@ type Query {
   expenseSubCategory(id: Int!): ExpenseSubCategory!
   expenses(pageSize: Int! = 10, pageNumber: Int! = 1): [Expense!]!
   expense(id: Int!): Expense!
+  calculateExpense(month: Int, year: Int, startDate: String, endDate: String, companyId: Int): Float!
   bankTransactions(pageSize: Int! = 10, pageNumber: Int! = 1): [BankTransaction!]!
   bankTransaction(id: Int!): BankTransaction!
   companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
@@ -214,15 +215,12 @@ type Mutation {
   createCompany(createCompanyInput: CreateCompanyInput!): Company!
   updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
   deleteCompany(id: Int!): String!
-  createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): BankTransaction!
-  removeBankTransaction(id: Int!): String!
   createStaff(createStaffInput: CreateStaffInput!): Staff!
   updateStaff(updateStaffInput: UpdateStaffInput!): Staff!
   removeStaff(id: Int!): Staff!
   createForecast(createForecastInput: CreateForecastInput!): [Forecast!]!
   updateForecast(updateForecastInput: UpdateForecastInput!): [Forecast!]!
   removeForecast(id: Int!): String!
-  deleteCompany(id: Int!): Boolean!
 }
 
 input CreateUserInput {
@@ -318,13 +316,6 @@ input UpdateCompanyInput {
   id: ID!
   name: String!
   isActive: Boolean!
-}
-
-input CreateBankTransactionInput {
-  bankId: Int!
-  amount: Float!
-  type: String!
-  comment: String!
 }
 
 input CreateStaffInput {

@@ -7,10 +7,11 @@ import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles';
+import { UserRoles } from '../roles/entities/role.entity';
 
 @Resolver(() => ExpenseCategory)
 @UseGuards(AuthGuard, RolesGuard)
-@Roles('admin', 'accountant')
+@Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
 export class ExpenseCategoryResolver {
   constructor(
     private readonly expenseCategoryService: ExpenseCategoryService,
