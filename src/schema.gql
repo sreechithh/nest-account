@@ -15,6 +15,12 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type Staff {
+  id: ID!
+  user: Int!
+  company: Company!
+}
+
 type ExpenseSubCategory {
   id: Int!
   expenseCategoryId: Float!
@@ -40,24 +46,24 @@ type Company {
   id: Int!
   name: String!
   isActive: Boolean!
-  salaryDate: Float!
   createdAt: DateTime!
   updatedAt: DateTime!
   bankAccounts: [BankAccount!]!
+  staff: Staff!
 }
 
 type BankAccount {
   id: ID!
   name: String!
-  accountNumber: String!
+  accountNumber: Float!
   createdAt: DateTime!
   updatedAt: DateTime!
   createdBy: Float!
   updatedBy: Float!
   isActive: Boolean!
-  bankBalance: Float!
+  bankBalance: Float
   company: Company!
-  bankTransactions: [BankTransaction!]!
+  bankTransactions: [BankTransaction!]
 }
 
 type BankTransaction {
@@ -126,14 +132,14 @@ type User {
   id: ID!
   name: String!
   email: String!
-  password: String!
   createdAt: DateTime!
   updatedAt: DateTime!
-  createdBy: String!
-  updatedBy: String!
+  createdBy: User
+  updatedBy: User
   isActive: Boolean!
   roles: [Role!]!
-  transactions: [BankTransaction!]!
+  transactions: [BankTransaction!]
+  staff: Staff
   employeeExpenses: [EmployeeExpense!]!
 }
 
@@ -147,10 +153,24 @@ type RemoveExpenseResponse {
   data: Expense
 }
 
+type Forecast {
+  id: ID!
+  amount: Float!
+  comment: String!
+  payDate: DateTime
+  expenseCategory: ExpenseCategory!
+  expenseSubCategory: ExpenseSubCategory!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User!
+  updatedBy: User!
+  staff: User
+  company: Company!
+}
+
 type Query {
-  users: [User!]!
+  users(perPage: Int! = 10, page: Int! = 1, isActive: Boolean = false, role: String = null): [User!]!
   user(id: Int!): User!
-  me: String!
   bankAccounts: [BankAccount!]!
   bankAccount(id: Int!): BankAccount!
   expenseCategories: [ExpenseCategory!]!
@@ -163,11 +183,15 @@ type Query {
   bankTransaction(id: Int!): BankTransaction!
   companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
   company(id: Int!): Company!
+  staff(id: Int!): Staff!
+  forecasts(perPage: Int! = 10, page: Int! = 1, companyId: Int!): [Forecast!]!
+  forecast(id: Int!): Forecast!
+  calculateForecast(month: Int, companyId: Int): Float!
 }
 
 type Mutation {
-  createUser(createUserInput: CreateUserInput!): User!
-  updateUser(updateUserInput: UpdateUserInput!): User!
+  createUser(createUserInput: CreateUserInput!): String!
+  updateUser(updateUserInput: UpdateUserInput!): String!
   removeUser(id: Int!): User!
   createBankAccount(createBankAccountInput: CreateBankAccountInput!): BankAccount!
   updateBankAccount(updateBankAccountInput: UpdateBankAccountInput!): BankAccount!
@@ -189,32 +213,47 @@ type Mutation {
   removeBankTransaction(id: Int!): String!
   createCompany(createCompanyInput: CreateCompanyInput!): Company!
   updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
+  deleteCompany(id: Int!): String!
+  createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): BankTransaction!
+  removeBankTransaction(id: Int!): String!
+  createStaff(createStaffInput: CreateStaffInput!): Staff!
+  updateStaff(updateStaffInput: UpdateStaffInput!): Staff!
+  removeStaff(id: Int!): Staff!
+  createForecast(createForecastInput: CreateForecastInput!): [Forecast!]!
+  updateForecast(updateForecastInput: UpdateForecastInput!): [Forecast!]!
+  removeForecast(id: Int!): String!
   deleteCompany(id: Int!): Boolean!
 }
 
 input CreateUserInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  name: String!
+  email: String!
+  password: String!
+  role: String!
+  companyId: Int
 }
 
 input UpdateUserInput {
-  """Example field (placeholder)"""
-  exampleField: Int
+  name: String
+  email: String
+  password: String
+  role: String
+  companyId: Int
   id: Int!
+  isActive: Boolean!
 }
 
 input CreateBankAccountInput {
   companyId: Int!
   name: String!
-  accountNumber: String!
-  bankBalance: Float!
+  accountNumber: Float!
 }
 
 input UpdateBankAccountInput {
   id: Int!
   companyId: Float!
   name: String!
-  accountNumber: String!
+  accountNumber: Float!
   isActive: Boolean!
 }
 
@@ -273,12 +312,52 @@ input CreateBankTransactionInput {
 
 input CreateCompanyInput {
   name: String!
-  salaryDate: Float!
 }
 
 input UpdateCompanyInput {
   id: ID!
   name: String!
-  salaryDate: Float!
   isActive: Boolean!
+}
+
+input CreateBankTransactionInput {
+  bankId: Int!
+  amount: Float!
+  type: String!
+  comment: String!
+}
+
+input CreateStaffInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateStaffInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateForecastInput {
+  amount: Float!
+  comment: String!
+  payDate: DateTime!
+  expenseCategoryId: Float!
+  expenseSubCategoryId: Float!
+  staffId: Int
+  companyId: Int!
+  isGenerateForAllMonth: Boolean
+}
+
+input UpdateForecastInput {
+  amount: Float!
+  comment: String!
+  payDate: DateTime!
+  expenseCategoryId: Float!
+  expenseSubCategoryId: Float!
+  staffId: Int
+  companyId: Int!
+  isGenerateForAllMonth: Boolean
+  id: Int!
+  isUpdateForAllMonth: Boolean
 }

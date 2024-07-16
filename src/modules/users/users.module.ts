@@ -5,9 +5,11 @@ import { User } from './entities/user.entity';
 import { Role } from '../roles/entities/role.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { Staff } from '../staff/entities/staff.entity';
+import { Company } from '../company/entities/company.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Role])],
+  imports: [TypeOrmModule.forFeature([User, Role, Staff, Company])],
   providers: [UsersService, UsersResolver, JwtService],
   exports: [UsersService],
 })

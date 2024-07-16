@@ -8,6 +8,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { BankAccount } from '../../bank-account/entities/bank-account.entity';
+import { Staff } from '../../staff/entities/staff.entity';
 
 @Entity()
 @ObjectType()
@@ -24,19 +25,19 @@ export class Company {
   @Field()
   isActive: boolean;
 
-  @Column()
-  @Field()
-  salaryDate: number;
-
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   @Field()
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamp' })
   @Field()
   updatedAt: Date;
 
   @Field(() => [BankAccount])
   @OneToMany(() => BankAccount, (bankAccounts) => bankAccounts.company)
   bankAccounts?: BankAccount[];
+
+  @Field(() => Staff)
+  @OneToMany(() => Staff, (staff) => staff.company)
+  staff?: Staff[];
 }

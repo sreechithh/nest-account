@@ -1,11 +1,14 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, HideField } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
+  ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
@@ -15,6 +18,7 @@ import { Role } from '../../roles/entities/role.entity';
 import * as bcrypt from 'bcrypt';
 import { EmployeeExpense } from '../../employee-expense/entities/employee-expense.entity';
 import { BankTransaction } from '../../bank-transactions/entities/bank-transaction.entity';
+import { Staff } from '../../staff/entities/staff.entity';
 
 @Unique(['email'])
 @ObjectType()
@@ -26,18 +30,15 @@ export class User {
 
   @Field()
   @Column()
-  @IsNotEmpty()
   @Length(3, 20)
   name: string;
 
   @Field()
   @Column()
-  @IsEmail()
   email: string;
 
-  @Field()
   @Column()
-  @IsOptional()
+  @HideField()
   password: string;
 
   @Field()
@@ -48,13 +49,15 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Field()
-  @Column({ nullable: true })
-  createdBy: string;
+  @ManyToOne(() => User, (user) => user.id)
+  @Field(() => User, { nullable: true })
+  @JoinColumn({ name: 'createdBy' })
+  createdBy?: User | null;
 
-  @Field()
-  @Column({ nullable: true })
-  updatedBy: string;
+  @ManyToOne(() => User, (user) => user.id)
+  @Field(() => User, { nullable: true })
+  @JoinColumn({ name: 'updatedBy' })
+  updatedBy?: User | null;
 
   @Field()
   @Column({ default: true })
@@ -66,8 +69,12 @@ export class User {
   roles: Role[];
 
   @OneToMany(() => BankTransaction, (transaction) => transaction.createdByUser)
-  @Field(() => [BankTransaction])
-  transactions?: BankTransaction[];
+  @Field(() => [BankTransaction], { nullable: true })
+  transactions?: BankTransaction[] | null;
+
+  @Field(() => Staff, { nullable: true })
+  @OneToOne(() => Staff, (staff) => staff.user, { nullable: true })
+  staff?: Staff | null;
 
   @Field(() => [EmployeeExpense])
   @OneToMany(() => EmployeeExpense, (employeeExpense) => employeeExpense.user)
@@ -75,9 +82,5 @@ export class User {
 
   async hashPassword() {
     this.password = await bcrypt.hash(this.password, 10);
-  }
-
-  async comparePassword(attempt: string): Promise<boolean> {
-    return await bcrypt.compare(attempt, this.password);
   }
 }
