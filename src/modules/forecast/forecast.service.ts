@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Raw, Repository } from 'typeorm';
 import { Forecast } from './entities/forecast.entity';
@@ -281,15 +281,33 @@ export class ForecastService {
     staffId: number | undefined,
   ) {
     return await Promise.all([
-      this.expenseCategoryRepository.findOneByOrFail({
-        id: expenseCategoryId,
-      }),
-      this.expenseSubCategoryRepository.findOneByOrFail({
-        id: expenseSubCategoryId,
-      }),
-      this.companyRepository.findOneByOrFail({
-        id: companyId,
-      }),
+      this.expenseCategoryRepository
+        .findOneByOrFail({
+          id: expenseCategoryId,
+        })
+        .catch(() => {
+          throw new HttpException(
+            `Expense category with ID ${expenseCategoryId} was not found`,
+            HttpStatus.NOT_FOUND,
+          );
+        }),
+      this.expenseSubCategoryRepository
+        .findOneByOrFail({
+          id: expenseSubCategoryId,
+        })
+        .catch(() => {
+          throw new HttpException(
+            `Expense sub-category with ID ${expenseSubCategoryId} was not found`,
+            HttpStatus.NOT_FOUND,
+          );
+        }),
+      this.companyRepository
+        .findOneByOrFail({
+          id: companyId,
+        })
+        .catch(() => {
+          throw new HttpException('Company not found', HttpStatus.NOT_FOUND);
+        }),
       staffId
         ? this.userRepository.findOneByOrFail({ id: staffId })
         : Promise.resolve(null),

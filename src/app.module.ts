@@ -2,7 +2,6 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './config/database.module';
 import { UsersModule } from './modules/users/users.module';
-import { RolesModule } from './modules/roles/roles.module';
 import { join } from 'path';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
@@ -16,7 +15,6 @@ import { ExpenseCategoryModule } from './modules/expense-category/expense-catego
 import { ExpenseSubCategoryModule } from './modules/expense-sub-category/expense-sub-category.module';
 import { BankTransactionsModule } from './modules/bank-transactions/bank-transactions.module';
 import { ExpenseModule } from './modules/expense/expense.module';
-import { StaffModule } from './modules/staff/staff.module';
 import { ForecastModule } from './modules/forecast/forecast.module';
 
 @Module({
@@ -28,7 +26,6 @@ import { ForecastModule } from './modules/forecast/forecast.module';
     }),
     DatabaseModule,
     UsersModule,
-    RolesModule,
     BankAccountModule,
     AuthModule,
     SeedModule,
@@ -37,7 +34,6 @@ import { ForecastModule } from './modules/forecast/forecast.module';
     ExpenseModule,
     CompanyModule,
     BankTransactionsModule,
-    StaffModule,
     ForecastModule,
   ],
   providers: [IsUniqueConstraint],

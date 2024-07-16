@@ -13,7 +13,7 @@ import {
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
-import { IsEmail, IsNotEmpty, IsOptional, Length } from 'class-validator';
+import { Length } from 'class-validator';
 import { Role } from '../../roles/entities/role.entity';
 import * as bcrypt from 'bcrypt';
 import { EmployeeExpense } from '../../employee-expense/entities/employee-expense.entity';
