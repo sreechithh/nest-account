@@ -67,11 +67,10 @@ type User {
   id: ID!
   name: String!
   email: String!
-  password: String!
   createdAt: DateTime!
   updatedAt: DateTime!
-  createdBy: String!
-  updatedBy: String!
+  createdBy: User
+  updatedBy: User
   isActive: Boolean!
   roles: [Role!]!
   transactions: [BankTransaction!]
@@ -115,9 +114,8 @@ type Forecast {
 }
 
 type Query {
-  users: [User!]!
+  users(perPage: Int! = 10, page: Int! = 1, isActive: Boolean = false, role: String = null): [User!]!
   user(id: Int!): User!
-  me: String!
   bankAccounts: [BankAccount!]!
   bankAccount(id: Int!): BankAccount!
   expenseCategories: [ExpenseCategory!]!
@@ -135,8 +133,8 @@ type Query {
 }
 
 type Mutation {
-  createUser(createUserInput: CreateUserInput!): User!
-  updateUser(updateUserInput: UpdateUserInput!): User!
+  createUser(createUserInput: CreateUserInput!): String!
+  updateUser(updateUserInput: UpdateUserInput!): String!
   removeUser(id: Int!): User!
   createBankAccount(createBankAccountInput: CreateBankAccountInput!): BankAccount!
   updateBankAccount(updateBankAccountInput: UpdateBankAccountInput!): BankAccount!
@@ -166,6 +164,7 @@ input CreateUserInput {
   email: String!
   password: String!
   role: String!
+  companyId: Int
 }
 
 input UpdateUserInput {
@@ -173,7 +172,9 @@ input UpdateUserInput {
   email: String
   password: String
   role: String
+  companyId: Int
   id: Int!
+  isActive: Boolean!
 }
 
 input CreateBankAccountInput {

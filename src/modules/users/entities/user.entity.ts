@@ -1,10 +1,12 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, HideField } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -34,8 +36,8 @@ export class User {
   @Column()
   email: string;
 
-  @Field()
   @Column()
+  @HideField()
   password: string;
 
   @Field()
@@ -46,13 +48,15 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Field()
-  @Column({ nullable: true })
-  createdBy: string;
+  @ManyToOne(() => User, (user) => user.id)
+  @Field(() => User, { nullable: true })
+  @JoinColumn({ name: 'createdBy' })
+  createdBy?: User | null;
 
-  @Field()
-  @Column({ nullable: true })
-  updatedBy: string;
+  @ManyToOne(() => User, (user) => user.id)
+  @Field(() => User, { nullable: true })
+  @JoinColumn({ name: 'updatedBy' })
+  updatedBy?: User | null;
 
   @Field()
   @Column({ default: true })
@@ -65,11 +69,11 @@ export class User {
 
   @OneToMany(() => BankTransaction, (transaction) => transaction.createdByUser)
   @Field(() => [BankTransaction], { nullable: true })
-  transactions?: BankTransaction[];
+  transactions?: BankTransaction[] | null;
 
   @Field(() => Staff, { nullable: true })
   @OneToOne(() => Staff, (staff) => staff.user, { nullable: true })
-  staff: Staff;
+  staff?: Staff | null;
 
   async hashPassword() {
     this.password = await bcrypt.hash(this.password, 10);

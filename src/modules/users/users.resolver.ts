@@ -3,19 +3,21 @@ import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
-import { UseGuards } from '@nestjs/common';
+import { UseFilters, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/decorators/loggin.user';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles';
 import { UserRoles } from '../roles/entities/role.entity';
+import { CustomGraphQLValidationExceptionFilter } from '../common/validation/custom-validation-exception.filter';
 
+@UseFilters(new CustomGraphQLValidationExceptionFilter())
 @Resolver(() => User)
 @UseGuards(AuthGuard, RolesGuard)
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
-  @Mutation(() => User)
+  @Mutation(() => String)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   createUser(
     @CurrentUser() user: User,
@@ -25,29 +27,44 @@ export class UsersResolver {
   }
 
   @Query(() => [User], { name: 'users' })
-  findAll() {
-    return this.usersService.findAll();
+  @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
+  findAll(
+    @Args('perPage', { type: () => Int, defaultValue: 10 }) perPage: number,
+    @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
+    @Args('isActive', {
+      type: () => Boolean,
+      nullable: true,
+      defaultValue: false,
+    })
+    isActive: boolean | null,
+    @Args('role', {
+      type: () => String,
+      nullable: true,
+      defaultValue: null,
+    })
+    role: string | null,
+  ) {
+    return this.usersService.findAll(perPage, page, isActive, role);
   }
 
   @Query(() => User, { name: 'user' })
+  @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   findOne(@Args('id', { type: () => Int }) id: number): Promise<User | null> {
     return this.usersService.findOne({ where: { id }, relations: ['roles'] });
   }
 
-  @Mutation(() => User)
-  updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
-    return this.usersService.update(updateUserInput.id, updateUserInput);
+  @Mutation(() => String)
+  @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
+  updateUser(
+    @CurrentUser() user: User,
+    @Args('updateUserInput') updateUserInput: UpdateUserInput,
+  ) {
+    return this.usersService.update(user, updateUserInput);
   }
 
   @Mutation(() => User)
+  @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   removeUser(@Args('id', { type: () => Int }) id: number) {
     return this.usersService.remove(id);
-  }
-
-  @Roles('admin', 'employee')
-  @Query(() => String)
-  async me(@CurrentUser() user: any): Promise<string> {
-    console.log(user);
-    return '12345';
   }
 }

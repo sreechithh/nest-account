@@ -24,5 +24,5 @@ export class Staff {
   @Field(() => Company)
   @ManyToOne(() => Company, (company: Company) => company.staff)
   @JoinColumn({ name: 'companyId' })
-  company: Company;
+  company: undefined | Company;
 }
