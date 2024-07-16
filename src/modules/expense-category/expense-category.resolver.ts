@@ -12,11 +12,14 @@ import { Roles } from '../auth/decorators/roles';
 @UseGuards(AuthGuard, RolesGuard)
 @Roles('admin', 'accountant')
 export class ExpenseCategoryResolver {
-  constructor(private readonly expenseCategoryService: ExpenseCategoryService) {}
+  constructor(
+    private readonly expenseCategoryService: ExpenseCategoryService,
+  ) {}
 
   @Mutation(() => ExpenseCategory)
   createExpenseCategory(
-    @Args('createExpenseCategoryInput') createExpenseCategoryInput: CreateExpenseCategoryInput,
+    @Args('createExpenseCategoryInput')
+    createExpenseCategoryInput: CreateExpenseCategoryInput,
   ): Promise<ExpenseCategory> {
     return this.expenseCategoryService.create(createExpenseCategoryInput);
   }
@@ -27,19 +30,25 @@ export class ExpenseCategoryResolver {
   }
 
   @Query(() => ExpenseCategory, { name: 'expenseCategory' })
-  findOne(@Args('id', { type: () => Int }) id: number): Promise<ExpenseCategory> {
+  findOne(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<ExpenseCategory> {
     return this.expenseCategoryService.findOne(id);
   }
 
   @Mutation(() => ExpenseCategory)
   updateExpenseCategory(
     @Args('id', { type: () => Int }) id: number,
-    @Args('updateExpenseCategoryInput') updateExpenseCategoryInput: UpdateExpenseCategoryInput,
+    @Args('updateExpenseCategoryInput')
+    updateExpenseCategoryInput: UpdateExpenseCategoryInput,
   ): Promise<ExpenseCategory> {
     return this.expenseCategoryService.update(id, updateExpenseCategoryInput);
   }
+
   @Mutation(() => ExpenseCategory)
-  removeExpenseCategory(@Args('id', { type: () => Int }) id: number): Promise<ExpenseCategory> {
+  removeExpenseCategory(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<ExpenseCategory> {
     return this.expenseCategoryService.remove(id);
   }
 }

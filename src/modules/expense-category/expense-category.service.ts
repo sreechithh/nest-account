@@ -51,8 +51,13 @@ export class ExpenseCategoryService {
     }
     return this.expenseCategoryRepository.save(expenseCategory);
   }
+
   async remove(id: number): Promise<ExpenseCategory> {
     const expenseCategory = await this.findOne(id);
+
+    if (expenseCategory.name === 'Staff') {
+      throw new Error(`ExpenseCategory with Name Staff cannot be deleted`);
+    }
     if (
       expenseCategory.subCategories &&
       expenseCategory.subCategories.length > 0
