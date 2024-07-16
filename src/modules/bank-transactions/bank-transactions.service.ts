@@ -64,6 +64,7 @@ export class BankTransactionsService {
       }),
     );
   }
+
   async findOne(id: number): Promise<any> {
     const bankAccount = await this.bankTransactionRepository.findOneBy({ id });
     if (!bankAccount) {

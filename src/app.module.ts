@@ -15,6 +15,7 @@ import { IsUniqueConstraint } from './modules/common/decorators/unique.validator
 import { ExpenseCategoryModule } from './modules/expense-category/expense-category.module';
 import { ExpenseSubCategoryModule } from './modules/expense-sub-category/expense-sub-category.module';
 import { BankTransactionsModule } from './modules/bank-transactions/bank-transactions.module';
+import { StaffModule } from './modules/staff/staff.module';
 import { ForecastModule } from './modules/forecast/forecast.module';
 
 @Module({
@@ -34,6 +35,7 @@ import { ForecastModule } from './modules/forecast/forecast.module';
     ExpenseSubCategoryModule,
     CompanyModule,
     BankTransactionsModule,
+    StaffModule,
     ForecastModule,
   ],
   providers: [IsUniqueConstraint],

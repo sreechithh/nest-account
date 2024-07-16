@@ -15,6 +15,12 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type Staff {
+  id: ID!
+  user: Int!
+  company: Company!
+}
+
 type Company {
   id: Int!
   name: String!
@@ -22,6 +28,7 @@ type Company {
   createdAt: DateTime!
   updatedAt: DateTime!
   bankAccounts: [BankAccount!]!
+  staff: Staff!
 }
 
 type BankAccount {
@@ -60,14 +67,14 @@ type User {
   id: ID!
   name: String!
   email: String!
-  password: String!
   createdAt: DateTime!
   updatedAt: DateTime!
-  createdBy: String!
-  updatedBy: String!
+  createdBy: User
+  updatedBy: User
   isActive: Boolean!
   roles: [Role!]!
-  transactions: [BankTransaction!]!
+  transactions: [BankTransaction!]
+  staff: Staff
 }
 
 type LoginResponse {
@@ -107,9 +114,8 @@ type Forecast {
 }
 
 type Query {
-  users: [User!]!
+  users(perPage: Int! = 10, page: Int! = 1, isActive: Boolean = false, role: String = null): [User!]!
   user(id: Int!): User!
-  me: String!
   bankAccounts: [BankAccount!]!
   bankAccount(id: Int!): BankAccount!
   expenseCategories: [ExpenseCategory!]!
@@ -120,14 +126,15 @@ type Query {
   company(id: Int!): Company!
   bankTransactions(pageSize: Int! = 10, pageNumber: Int! = 1): [BankTransaction!]!
   bankTransaction(id: Int!): BankTransaction!
+  staff(id: Int!): Staff!
   forecasts(perPage: Int! = 10, page: Int! = 1, companyId: Int!): [Forecast!]!
   forecast(id: Int!): Forecast!
   calculateForecast(month: Int, companyId: Int): Float!
 }
 
 type Mutation {
-  createUser(createUserInput: CreateUserInput!): User!
-  updateUser(updateUserInput: UpdateUserInput!): User!
+  createUser(createUserInput: CreateUserInput!): String!
+  updateUser(updateUserInput: UpdateUserInput!): String!
   removeUser(id: Int!): User!
   createBankAccount(createBankAccountInput: CreateBankAccountInput!): BankAccount!
   updateBankAccount(updateBankAccountInput: UpdateBankAccountInput!): BankAccount!
@@ -144,20 +151,30 @@ type Mutation {
   deleteCompany(id: Int!): String!
   createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): BankTransaction!
   removeBankTransaction(id: Int!): String!
+  createStaff(createStaffInput: CreateStaffInput!): Staff!
+  updateStaff(updateStaffInput: UpdateStaffInput!): Staff!
+  removeStaff(id: Int!): Staff!
   createForecast(createForecastInput: CreateForecastInput!): [Forecast!]!
   updateForecast(updateForecastInput: UpdateForecastInput!): [Forecast!]!
   removeForecast(id: Int!): String!
 }
 
 input CreateUserInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  name: String!
+  email: String!
+  password: String!
+  role: String!
+  companyId: Int
 }
 
 input UpdateUserInput {
-  """Example field (placeholder)"""
-  exampleField: Int
+  name: String
+  email: String
+  password: String
+  role: String
+  companyId: Int
   id: Int!
+  isActive: Boolean!
 }
 
 input CreateBankAccountInput {
@@ -212,6 +229,17 @@ input CreateBankTransactionInput {
   amount: Float!
   type: String!
   comment: String!
+}
+
+input CreateStaffInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateStaffInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
 }
 
 input CreateForecastInput {

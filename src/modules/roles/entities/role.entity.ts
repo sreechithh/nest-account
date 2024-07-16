@@ -12,7 +12,7 @@ import { Field, ID, ObjectType } from '@nestjs/graphql';
 export const UserRoles = {
   ADMIN: 'admin',
   ACCOUNTANT: 'accountant',
-  EMPLOYEE: 'employee',
+  EMPLOYEE: 'staff',
 };
 
 @Entity()

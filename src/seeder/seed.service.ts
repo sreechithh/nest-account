@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Role } from '../modules/roles/entities/role.entity';
+import { Role, UserRoles } from '../modules/roles/entities/role.entity';
 import { User } from '../modules/users/entities/user.entity';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class SeedService {
   ) {}
 
   async createDefaultRoles() {
-    const roles = ['admin', 'employee', 'accountant'];
+    const roles = [UserRoles.ADMIN, UserRoles.ACCOUNTANT, UserRoles.EMPLOYEE];
     for (const roleName of roles) {
       const existingRole = await this.roleRepository.findOne({
         where: { name: roleName },
@@ -28,7 +28,7 @@ export class SeedService {
 
   async createDefaultAdmin() {
     const email = 'admin@admin.com';
-    const role = 'admin';
+    const role = UserRoles.ADMIN;
     const defaultPassword = 'password';
 
     const users = await this.userRepository
@@ -44,7 +44,7 @@ export class SeedService {
     if (users.length === 0 && adminRole) {
       const newUser = this.userRepository.create({
         email,
-        name: 'admin',
+        name: UserRoles.ADMIN,
         password: defaultPassword,
         roles: [adminRole],
       });

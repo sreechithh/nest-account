@@ -4,9 +4,10 @@ import { CompanyResolver } from './company.resolver';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Company } from './entities/company.entity';
 import { JwtService } from '@nestjs/jwt';
+import { Staff } from '../staff/entities/staff.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Company])],
+  imports: [TypeOrmModule.forFeature([Company, Staff])],
   providers: [CompanyResolver, CompanyService, JwtService],
   exports: [CompanyService],
 })
