@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-/home/hidragen/.nvm/versions/node/v20.11.1/bin/npx lint-staged
+npx lint-staged
