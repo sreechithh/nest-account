@@ -143,6 +143,13 @@ type User {
   employeeExpenses: [EmployeeExpense!]!
 }
 
+type PaginatedUsersResponse {
+  data: [User!]!
+  totalRows: Int!
+  totalPages: Int!
+  currentPage: Int!
+}
+
 type LoginResponse {
   access_token: String!
 }
@@ -168,8 +175,15 @@ type Forecast {
   company: Company!
 }
 
+type PaginatedForecastResponse {
+  data: [Forecast!]!
+  totalRows: Int!
+  totalPages: Int!
+  currentPage: Int!
+}
+
 type Query {
-  users(perPage: Int! = 10, page: Int! = 1, isActive: Boolean = false, role: String = null): [User!]!
+  users(perPage: Int! = 10, page: Int! = 1, isActive: Boolean = false, role: String = null): PaginatedUsersResponse!
   user(id: Int!): User!
   bankAccounts: [BankAccount!]!
   bankAccount(id: Int!): BankAccount!
@@ -184,8 +198,7 @@ type Query {
   bankTransaction(id: Int!): BankTransaction!
   companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
   company(id: Int!): Company!
-  staff(id: Int!): Staff!
-  forecasts(perPage: Int! = 10, page: Int! = 1, companyId: Int!): [Forecast!]!
+  forecasts(perPage: Int! = 10, page: Int! = 1, companyId: Int!): PaginatedForecastResponse!
   forecast(id: Int!): Forecast!
   calculateForecast(month: Int, companyId: Int): Float!
 }
@@ -317,6 +330,7 @@ input UpdateCompanyInput {
   name: String!
   isActive: Boolean!
 }
+
 
 input CreateStaffInput {
   """Example field (placeholder)"""
