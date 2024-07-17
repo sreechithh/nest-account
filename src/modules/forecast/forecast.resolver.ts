@@ -10,6 +10,7 @@ import { Roles } from '../auth/decorators/roles';
 import { UserRoles } from '../roles/entities/role.entity';
 import { CurrentUser } from '../auth/decorators/loggin.user';
 import { User } from '../users/entities/user.entity';
+import { PaginatedForecastResponse } from './dto/paginated-forecast-response.dto';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Resolver(() => Forecast)
@@ -25,14 +26,14 @@ export class ForecastResolver {
     return this.forecastService.create(user, createForecastInput);
   }
 
-  @Query(() => [Forecast], { name: 'forecasts' })
+  @Query(() => PaginatedForecastResponse, { name: 'forecasts' })
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   findAll(
     @Args('perPage', { type: () => Int, defaultValue: 10 }) perPage: number,
     @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
     @Args('companyId', { type: () => Int, defaultValue: null })
     companyId: number | null,
-  ) {
+  ): Promise<PaginatedForecastResponse> {
     return this.forecastService.findAll(perPage, page, (companyId = null));
   }
 

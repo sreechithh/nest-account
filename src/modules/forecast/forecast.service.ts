@@ -8,6 +8,7 @@ import { ExpenseCategory } from '../expense-category/entities/expense-category.e
 import { CreateForecastInput } from './dto/create-forecast.input';
 import { UpdateForecastInput } from './dto/update-forecast.input';
 import { Company } from '../company/entities/company.entity';
+import { PaginatedForecastResponse } from './dto/paginated-forecast-response.dto';
 const defaultForecastYear: number = 2023;
 
 @Injectable()
@@ -168,11 +169,11 @@ export class ForecastService {
     });
   }
 
-  findAll(
+  async findAll(
     perPage: number,
     page: number,
     companyId?: number | null,
-  ): Promise<Forecast[]> {
+  ): Promise<PaginatedForecastResponse> {
     const options: FindManyOptions<Forecast> = {
       take: perPage,
       skip: (page - 1) * perPage,
@@ -189,7 +190,16 @@ export class ForecastService {
     if (companyId) {
       options.where = { ...options.where, company: { id: companyId } };
     }
-    return this.forecastRepository.find(options);
+    const [data, totalRows] =
+      await this.forecastRepository.findAndCount(options);
+    const totalPages = Math.ceil(totalRows / perPage);
+
+    return {
+      data,
+      totalRows,
+      totalPages,
+      currentPage: page,
+    };
   }
 
   findOne(id: number): Promise<Forecast> {
@@ -306,10 +316,18 @@ export class ForecastService {
           id: companyId,
         })
         .catch(() => {
-          throw new HttpException('Company not found', HttpStatus.NOT_FOUND);
+          throw new HttpException(
+            `Company with ID ${companyId} was not found`,
+            HttpStatus.NOT_FOUND,
+          );
         }),
       staffId
-        ? this.userRepository.findOneByOrFail({ id: staffId })
+        ? this.userRepository.findOneByOrFail({ id: staffId }).catch(() => {
+            throw new HttpException(
+              `Staff with ID ${staffId} was not found`,
+              HttpStatus.NOT_FOUND,
+            );
+          })
         : Promise.resolve(null),
     ]);
   }
