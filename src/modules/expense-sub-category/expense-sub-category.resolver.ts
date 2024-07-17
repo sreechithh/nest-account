@@ -7,16 +7,18 @@ import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles';
+import { UserRoles } from '../roles/entities/role.entity';
 
 @Resolver(() => ExpenseSubCategory)
 @UseGuards(AuthGuard, RolesGuard)
-@Roles('admin', 'accountant')
+@Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
 export class ExpenseSubCategoryResolver {
   constructor(private expenseSubCategoryService: ExpenseSubCategoryService) {}
 
   @Mutation(() => ExpenseSubCategory)
   createExpenseSubCategory(
-    @Args('createExpenseSubCategoryInput') createExpenseSubCategoryInput: CreateExpenseSubCategoryInput,
+    @Args('createExpenseSubCategoryInput')
+    createExpenseSubCategoryInput: CreateExpenseSubCategoryInput,
   ): Promise<ExpenseSubCategory> {
     return this.expenseSubCategoryService.create(createExpenseSubCategoryInput);
   }
@@ -27,19 +29,27 @@ export class ExpenseSubCategoryResolver {
   }
 
   @Query(() => ExpenseSubCategory, { name: 'expenseSubCategory' })
-  findOne(@Args('id', { type: () => Int }) id: number): Promise<ExpenseSubCategory> {
+  findOne(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<ExpenseSubCategory> {
     return this.expenseSubCategoryService.findOne(id);
   }
 
   @Mutation(() => ExpenseSubCategory)
   updateExpenseSubCategory(
     @Args('id', { type: () => Int }) id: number,
-    @Args('updateExpenseSubCategoryInput') updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput,
+    @Args('updateExpenseSubCategoryInput')
+    updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput,
   ): Promise<ExpenseSubCategory> {
-    return this.expenseSubCategoryService.update(id,updateExpenseSubCategoryInput);
+    return this.expenseSubCategoryService.update(
+      id,
+      updateExpenseSubCategoryInput,
+    );
   }
   @Mutation(() => ExpenseSubCategory)
-  removeExpenseSubCategory(@Args('id', { type: () => Int }) id: number): Promise<ExpenseSubCategory> {
+  removeExpenseSubCategory(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<ExpenseSubCategory> {
     return this.expenseSubCategoryService.remove(id);
   }
 }

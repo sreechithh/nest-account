@@ -193,6 +193,7 @@ type Query {
   expenseSubCategory(id: Int!): ExpenseSubCategory!
   expenses(pageSize: Int! = 10, pageNumber: Int! = 1): [Expense!]!
   expense(id: Int!): Expense!
+  calculateExpense(month: Int, year: Int, startDate: String, endDate: String, companyId: Int): Float!
   bankTransactions(pageSize: Int! = 10, pageNumber: Int! = 1): [BankTransaction!]!
   bankTransaction(id: Int!): BankTransaction!
   companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
@@ -227,6 +228,9 @@ type Mutation {
   createCompany(createCompanyInput: CreateCompanyInput!): Company!
   updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
   deleteCompany(id: Int!): String!
+  createStaff(createStaffInput: CreateStaffInput!): Staff!
+  updateStaff(updateStaffInput: UpdateStaffInput!): Staff!
+  removeStaff(id: Int!): Staff!
   createForecast(createForecastInput: CreateForecastInput!): [Forecast!]!
   updateForecast(updateForecastInput: UpdateForecastInput!): [Forecast!]!
   removeForecast(id: Int!): String!
@@ -325,6 +329,18 @@ input UpdateCompanyInput {
   id: ID!
   name: String!
   isActive: Boolean!
+}
+
+
+input CreateStaffInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateStaffInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
 }
 
 input CreateForecastInput {

@@ -16,6 +16,7 @@ import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles';
+import { UserRoles } from '../roles/entities/role.entity';
 
 @ObjectType()
 class RemoveExpenseResponse {
@@ -35,7 +36,7 @@ export class ExpenseResolver {
   constructor(private readonly expenseService: ExpenseService) {}
 
   @Mutation(() => Expense)
-  @Roles('admin', 'accountant')
+  @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   async createExpense(
     @Args('createExpenseInput') createExpenseInput: CreateExpenseInput,
     @CurrentUser() user: any,
@@ -44,7 +45,7 @@ export class ExpenseResolver {
   }
 
   @Query(() => [Expense], { name: 'expenses' })
-  @Roles('admin', 'accountant')
+  @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   findAll(
     @Args('pageSize', { type: () => Int, defaultValue: 10 }) pageSize: number,
     @Args('pageNumber', { type: () => Int, defaultValue: 1 })
@@ -54,13 +55,13 @@ export class ExpenseResolver {
   }
 
   @Query(() => Expense, { name: 'expense' })
-  @Roles('admin', 'accountant')
+  @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   findOne(@Args('id', { type: () => Int }) id: number): Promise<Expense> {
     return this.expenseService.findOne(id);
   }
 
   @Mutation(() => Expense)
-  @Roles('admin', 'accountant')
+  @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   updateExpense(
     @Args('id', { type: () => Int }) id: number,
     @Args('updateExpenseInput') updateExpenseInput: UpdateExpenseInput,
@@ -70,6 +71,7 @@ export class ExpenseResolver {
   }
 
   @Mutation(() => RemoveExpenseResponse)
+  @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   async removeExpense(
     @Args('id', { type: () => Int }) id: number,
   ): Promise<RemoveExpenseResponse> {
@@ -83,7 +85,7 @@ export class ExpenseResolver {
   }
 
   @Mutation(() => Boolean)
-  @Roles('admin')
+  @Roles(UserRoles.ADMIN)
   async approveExpenses(
     @Args({ name: 'ids', type: () => [Int] }) ids: number[],
   ): Promise<boolean> {
@@ -91,7 +93,7 @@ export class ExpenseResolver {
   }
 
   @Mutation(() => Boolean)
-  @Roles('admin')
+  @Roles(UserRoles.ADMIN)
   async rejectExpenses(
     @Args({ name: 'ids', type: () => [Int] }) ids: number[],
   ): Promise<boolean> {
@@ -99,11 +101,35 @@ export class ExpenseResolver {
   }
 
   @Mutation(() => Boolean)
-  @Roles('admin', 'accountant')
+  @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   async paidExpenses(
     @Args({ name: 'ids', type: () => [Int] }) ids: number[],
     @CurrentUser() user: any,
   ): Promise<boolean> {
     return this.expenseService.paidExpenses(ids, user.id);
+  }
+  @Query(() => Number)
+  @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
+  calculateExpense(
+    @Args('month', { type: () => Int, nullable: true })
+    month: number | null,
+    @Args('year', { type: () => Int, nullable: true })
+    year: number | null,
+    @Args('startDate', { type: () => String, nullable: true })
+    startDate: string | null,
+    @Args('endDate', { type: () => String, nullable: true })
+    endDate: string | null,
+    @Args('companyId', { type: () => Int, nullable: true })
+    companyId: number | null,
+  ) {
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+    return this.expenseService.calculateExpense(
+      month,
+      year,
+      start,
+      end,
+      companyId,
+    );
   }
 }

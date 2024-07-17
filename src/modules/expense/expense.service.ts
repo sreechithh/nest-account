@@ -1,6 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, FindManyOptions, Repository, In } from 'typeorm';
+import {
+  DataSource,
+  FindManyOptions,
+  Repository,
+  In,
+  Raw,
+  Between,
+} from 'typeorm';
 import { Expense } from './entities/expense.entity';
 import { ExpenseStatus } from './enums/expense-status.enum';
 import { CreateExpenseInput } from './dto/create-expense.input';
@@ -9,6 +16,7 @@ import { ExpenseCategory } from '../expense-category/entities/expense-category.e
 import { ExpenseSubCategory } from '../expense-sub-category/entities/expense-sub-category.entity';
 import { EmployeeExpense } from '../employee-expense/entities/employee-expense.entity';
 import { User } from '../users/entities/user.entity';
+import { Role, UserRoles } from '../roles/entities/role.entity';
 import { BankTransaction } from '../bank-transactions/entities/bank-transaction.entity';
 import { BankAccount } from '../bank-account/entities/bank-account.entity';
 import { Company } from '../company/entities/company.entity';
@@ -130,7 +138,7 @@ export class ExpenseService {
 
         if (
           employee &&
-          employee.roles.some((role) => role.name === 'employee')
+          employee.roles.some((role) => role.name === UserRoles.EMPLOYEE)
         ) {
           const employeeExpense = manager.create(EmployeeExpense, {
             expense: savedExpense,
@@ -305,7 +313,7 @@ export class ExpenseService {
 
         if (
           employee &&
-          employee.roles.some((role) => role.name === 'employee')
+          employee.roles.some((role) => role.name === UserRoles.EMPLOYEE)
         ) {
           let employeeExpense = await manager.findOne(EmployeeExpense, {
             where: { expense: updatedExpense },
@@ -439,5 +447,37 @@ export class ExpenseService {
       await manager.save(Expense, expenses);
       return true;
     });
+  }
+  async calculateExpense(
+    month: number | null = null,
+    year: number | null = null,
+    startDate: Date | null = null,
+    endDate: Date | null = null,
+    companyId: number | null = null,
+  ): Promise<number> {
+    const query = this.expenseRepository
+      .createQueryBuilder('expense')
+      .select('SUM(expense.amount)', 'total');
+
+    if (month !== null) {
+      query.andWhere('EXTRACT(MONTH FROM expense.paidAt) = :month', { month });
+    }
+
+    if (year !== null) {
+      query.andWhere('EXTRACT(YEAR FROM expense.paidAt) = :year', { year });
+    }
+    if (startDate !== null && endDate !== null) {
+      query.andWhere('expense.paidAt BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      });
+    }
+
+    if (companyId !== null) {
+      query.andWhere('expense.companyId = :companyId', { companyId });
+    }
+
+    const result = await query.getRawOne();
+    return result?.total || 0;
   }
 }
