@@ -1,4 +1,6 @@
 import {
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -12,6 +14,7 @@ import { Role, UserRoles } from '../roles/entities/role.entity';
 import { Staff } from '../staff/entities/staff.entity';
 import { Company } from '../company/entities/company.entity';
 import * as bcrypt from 'bcrypt';
+import { PaginatedUsersResponse } from './dto/paginated-users-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -33,12 +36,16 @@ export class UsersService {
       role: inputRole,
       companyId,
     } = createUserInput;
-    const role = await this.roleRepository.findOneBy({ name: inputRole });
+    const role = await this.roleRepository
+      .findOneByOrFail({ name: inputRole })
+      .catch(() => {
+        throw new HttpException(
+          `The role ${inputRole} was not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      });
     let company;
 
-    if (!role) {
-      throw new NotFoundException(`${inputRole} not found`);
-    }
     if (
       user.roles.some((role) => role.name === UserRoles.ACCOUNTANT) &&
       inputRole !== UserRoles.EMPLOYEE
@@ -50,11 +57,14 @@ export class UsersService {
       if (!companyId) {
         throw new NotFoundException('CompanyId not found');
       }
-      company = await this.companyRepository.findOneBy({ id: companyId });
-
-      if (!company) {
-        throw new Error('company not found');
-      }
+      company = await this.companyRepository
+        .findOneByOrFail({ id: companyId })
+        .catch(() => {
+          throw new HttpException(
+            `The company with ID ${companyId} was not found.`,
+            HttpStatus.NOT_FOUND,
+          );
+        });
     }
     const userEntity = this.usersRepository.create({
       name,
@@ -86,7 +96,7 @@ export class UsersService {
     page: number,
     isActive?: boolean | null,
     role?: string | null,
-  ): Promise<User[]> {
+  ): Promise<PaginatedUsersResponse> {
     const options: FindManyOptions<User> = {
       take: perPage,
       skip: (page - 1) * perPage,
@@ -112,8 +122,15 @@ export class UsersService {
         name: In(role ? [role] : [UserRoles.EMPLOYEE, UserRoles.ACCOUNTANT]),
       },
     };
+    const [data, totalRows] = await this.usersRepository.findAndCount(options);
+    const totalPages = Math.ceil(totalRows / perPage);
 
-    return this.usersRepository.find(options);
+    return {
+      data,
+      totalRows,
+      totalPages,
+      currentPage: page,
+    };
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -134,20 +151,27 @@ export class UsersService {
       isActive,
     } = updateUserInput;
     const loginUser = { email: user.email, id: user.id } as User;
-    const userToUpdate = await this.usersRepository.findOne({
-      where: { id },
-      relations: ['roles'],
-    });
-    if (!userToUpdate) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
+    const userToUpdate = await this.usersRepository
+      .findOneOrFail({
+        where: { id },
+        relations: ['roles'],
+      })
+      .catch(() => {
+        throw new HttpException(
+          `The user with ID ${id} was not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      });
 
-    const role = await this.roleRepository.findOneBy({ name: inputRole });
+    const role = await this.roleRepository
+      .findOneByOrFail({ name: inputRole })
+      .catch(() => {
+        throw new HttpException(
+          `The role ${inputRole} was not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      });
     let company;
-
-    if (!role) {
-      throw new NotFoundException(`${inputRole} not found`);
-    }
 
     if (
       user.roles.some((role) => role.name === UserRoles.ACCOUNTANT) &&
@@ -160,11 +184,14 @@ export class UsersService {
       if (!companyId) {
         throw new NotFoundException('CompanyId not found');
       }
-      company = await this.companyRepository.findOneBy({ id: companyId });
-
-      if (!company) {
-        throw new NotFoundException('Company not found');
-      }
+      company = await this.companyRepository
+        .findOneBy({ id: companyId })
+        .catch(() => {
+          throw new HttpException(
+            `The company with ID ${companyId} was not found.`,
+            HttpStatus.NOT_FOUND,
+          );
+        });
     }
 
     if (name) userToUpdate.name = name;
@@ -173,7 +200,6 @@ export class UsersService {
     userToUpdate.roles = [role];
     userToUpdate.updatedBy = loginUser;
     userToUpdate.isActive = isActive;
-
     const updatedUser = await this.usersRepository.save(userToUpdate);
 
     if (!updatedUser) {

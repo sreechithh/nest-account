@@ -10,6 +10,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles';
 import { UserRoles } from '../roles/entities/role.entity';
 import { CustomGraphQLValidationExceptionFilter } from '../common/validation/custom-validation-exception.filter';
+import { PaginatedUsersResponse } from './dto/paginated-users-response.dto';
 
 @UseFilters(new CustomGraphQLValidationExceptionFilter())
 @Resolver(() => User)
@@ -26,7 +27,7 @@ export class UsersResolver {
     return this.usersService.create(user, createUserInput);
   }
 
-  @Query(() => [User], { name: 'users' })
+  @Query(() => PaginatedUsersResponse, { name: 'users' })
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   findAll(
     @Args('perPage', { type: () => Int, defaultValue: 10 }) perPage: number,
@@ -43,7 +44,7 @@ export class UsersResolver {
       defaultValue: null,
     })
     role: string | null,
-  ) {
+  ): Promise<PaginatedUsersResponse> {
     return this.usersService.findAll(perPage, page, isActive, role);
   }
 
