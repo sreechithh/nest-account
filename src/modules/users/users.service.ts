@@ -31,6 +31,7 @@ export class UsersService {
     @InjectRepository(Company)
     private companyRepository: Repository<Company>,
   ) {}
+
   async create(
     user: User,
     createUserInput: CreateUserInput,
@@ -93,6 +94,7 @@ export class UsersService {
       });
       await this.staffRepository.save(staff);
     }
+
     return {
       statusCode: 201,
       message: 'Users created successfully',
@@ -208,7 +210,9 @@ export class UsersService {
     }
 
     if (name) userToUpdate.name = name;
+
     if (email) userToUpdate.email = email;
+
     if (password) userToUpdate.password = await bcrypt.hash(password, 10);
     userToUpdate.roles = [role];
     userToUpdate.updatedBy = loginUser;
@@ -248,6 +252,7 @@ export class UsersService {
         if (!user) {
           throw new HttpException('User not found', HttpStatus.NOT_FOUND);
         }
+
         return {
           statusCode: 200,
           message: 'User fetched successfully',

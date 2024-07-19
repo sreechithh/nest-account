@@ -111,6 +111,7 @@ export class ExpenseResolver {
   ) {
     const start = startDate ? new Date(startDate) : null;
     const end = endDate ? new Date(endDate) : null;
+
     return this.expenseService.calculateExpense(
       month,
       year,

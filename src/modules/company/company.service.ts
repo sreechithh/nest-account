@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -70,6 +69,7 @@ export class CompanyService {
       ...createCompanyInput,
     });
     await this.companyRepository.save(newCompany);
+
     return {
       statusCode: 200,
       message: 'Company created successfully',
@@ -109,6 +109,7 @@ export class CompanyService {
             HttpStatus.NOT_FOUND,
           );
         }
+
         if (company?.bankAccounts && company.bankAccounts.length > 0) {
           throw new HttpException(
             `Company with ID ${id} has bank accounts cannot be deleted`,

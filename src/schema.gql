@@ -256,7 +256,7 @@ type Forecast {
   id: ID!
   amount: Float!
   comment: String!
-  payDate: DateTime
+  payDate: Date
   expenseCategory: ExpenseCategory!
   expenseSubCategory: ExpenseSubCategory!
   createdAt: DateTime!
@@ -430,7 +430,7 @@ input UpdateCompanyInput {
 input CreateForecastInput {
   amount: Float!
   comment: String!
-  payDate: DateTime!
+  payDate: Date!
   expenseCategoryId: Float!
   expenseSubCategoryId: Float!
   staffId: Int

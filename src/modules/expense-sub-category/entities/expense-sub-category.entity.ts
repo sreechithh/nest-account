@@ -3,7 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
-  JoinColumn, ManyToMany,
+  JoinColumn,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -42,12 +42,11 @@ export class ExpenseSubCategory {
   updatedAt: Date;
 
   @Field(() => ExpenseCategory)
-  @ManyToOne(() => ExpenseCategory, category => category.subCategories)
+  @ManyToOne(() => ExpenseCategory, (category) => category.subCategories)
   @JoinColumn({ name: 'expenseCategoryId' })
   expenseCategory: ExpenseCategory;
 
   @Field(() => [Expense], { nullable: true })
-  @OneToMany(() => Expense, expense => expense.expenseSubCategory)
+  @OneToMany(() => Expense, (expense) => expense.expenseSubCategory)
   expenses: Expense[];
-
 }

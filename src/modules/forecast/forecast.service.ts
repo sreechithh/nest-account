@@ -1,12 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  FindManyOptions,
-  Raw,
-  Repository,
-  ObjectLiteral,
-  FindOptionsWhere,
-} from 'typeorm';
+import { FindManyOptions, Raw, Repository } from 'typeorm';
 import { Forecast } from './entities/forecast.entity';
 import { User } from '../users/entities/user.entity';
 import { ExpenseSubCategory } from '../expense-sub-category/entities/expense-sub-category.entity';
@@ -74,12 +68,15 @@ export class ForecastService {
       forecasts.push(...savedForecast);
     } else {
       const forecastDate = new Date(
-        payDateObj.getMonth() < 3
-          ? defaultForecastYear + 1
-          : defaultForecastYear,
-        payDateObj.getMonth(),
-        payDateObj.getDate(),
+        Date.UTC(
+          payDateObj.getMonth() < 3
+            ? defaultForecastYear + 1
+            : defaultForecastYear,
+          payDateObj.getMonth(),
+          payDateObj.getDate(),
+        ),
       );
+
       const forecast = this.createForecastEntity({
         amount,
         comment,
@@ -95,6 +92,7 @@ export class ForecastService {
     }
 
     await this.forecastRepository.save(forecasts);
+
     return {
       statusCode: 201,
       message: 'Forecast created successfully',
@@ -116,9 +114,7 @@ export class ForecastService {
 
     for (let i = 0; i < 12; i++) {
       const forecastDate = new Date(
-        defaultForecastYear,
-        3 + i,
-        payDateObj.getDate(),
+        Date.UTC(defaultForecastYear, 3 + i, payDateObj.getDate(), 0, 0, 0, 0),
       );
 
       const forecast = this.createForecastEntity({
@@ -140,7 +136,6 @@ export class ForecastService {
         savedForecast.relatedForecastId = savedForecast.id;
         await this.forecastRepository.save(savedForecast);
       }
-
       forecasts.push(savedEntity);
     }
 
@@ -228,6 +223,7 @@ export class ForecastService {
         'company',
       ],
     });
+
     return {
       data,
       statusCode: 200,
@@ -290,6 +286,7 @@ export class ForecastService {
     });
 
     await this.forecastRepository.save(forecasts);
+
     return {
       statusCode: 200,
       message: 'Forecast updated successfully',
@@ -303,6 +300,7 @@ export class ForecastService {
       await this.forecastRepository.delete({
         relatedForecastId: forecast.relatedForecastId,
       });
+
       return {
         statusCode: 200,
         message: `ID with #${id} has been removed from forecast with all related forecasts`,
@@ -377,6 +375,7 @@ export class ForecastService {
         { month },
       );
     }
+
     if (companyId !== null) {
       conditions.company = { id: companyId };
     }

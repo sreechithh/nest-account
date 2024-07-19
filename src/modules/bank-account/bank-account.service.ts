@@ -50,6 +50,7 @@ export class BankAccountService {
     createBankAccountInput: CreateBankAccountInput,
   ): Promise<CommonBankAccountResponse> {
     const { name, companyId, accountNumber } = createBankAccountInput;
+
     return this.companyRepository
       .findOne({
         where: { id: companyId },
@@ -100,6 +101,7 @@ export class BankAccountService {
     const data = await Promise.all(
       bankAccounts.map(async (bankAccount) => {
         const netBalance = await this.getBankBalance(bankAccount.id);
+
         return { ...bankAccount, bankBalance: netBalance };
       }),
     );
@@ -122,8 +124,10 @@ export class BankAccountService {
         if (!bankAccount) {
           throw new NotFoundException(`Bank Account with ID ${id} not found`);
         }
+
         return this.getBankBalance(bankAccount.id).then((netBalance) => {
           bankAccount.bankBalance = netBalance;
+
           return {
             data: bankAccount,
             statusCode: 200,
@@ -155,6 +159,7 @@ export class BankAccountService {
         if (!company) {
           throw new NotFoundException(`Company with ID ${companyId} not found`);
         }
+
         return this.bankAccountRepository.findOne({
           where: { id },
           relations: ['bankTransactions', 'company'],

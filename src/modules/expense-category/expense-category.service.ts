@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  ConflictException,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
@@ -30,6 +29,7 @@ export class ExpenseCategoryService {
       isActive: createExpenseCategoryInput.isActive,
     });
     await this.expenseCategoryRepository.save(expenseCategory);
+
     return {
       statusCode: 201,
       message: 'Expense Category created successfully',
@@ -90,10 +90,12 @@ export class ExpenseCategoryService {
       id,
       ...updateExpenseCategoryInput,
     });
+
     if (!expenseCategory) {
       throw new NotFoundException(`ExpenseCategory with ID ${id} not found`);
     }
     await this.expenseCategoryRepository.save(expenseCategory);
+
     return {
       statusCode: 200,
       message: 'Expense Category updated successfully',

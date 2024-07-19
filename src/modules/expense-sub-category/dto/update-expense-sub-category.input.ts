@@ -1,6 +1,7 @@
-import { InputType, PartialType, Field, Int } from '@nestjs/graphql';
+import { InputType, PartialType } from '@nestjs/graphql';
 import { CreateExpenseSubCategoryInput } from './create-expense-sub-category.input';
 
 @InputType()
-export class UpdateExpenseSubCategoryInput extends PartialType(CreateExpenseSubCategoryInput) {
-}
+export class UpdateExpenseSubCategoryInput extends PartialType(
+  CreateExpenseSubCategoryInput,
+) {}

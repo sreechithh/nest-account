@@ -1,5 +1,6 @@
 import { InputType, Field, Float, Int } from '@nestjs/graphql';
 import { IsDate, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import { GraphQLDate } from 'graphql-scalars';
 
 @InputType()
 export class CreateForecastInput {
@@ -11,7 +12,7 @@ export class CreateForecastInput {
   @IsNotEmpty()
   comment: string;
 
-  @Field()
+  @Field(() => GraphQLDate)
   @IsDate()
   payDate: Date;
 
