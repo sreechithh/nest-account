@@ -1,13 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import {
-  DataSource,
-  FindManyOptions,
-  Repository,
-  In,
-  Raw,
-  Between,
-} from 'typeorm';
+import { DataSource, FindManyOptions, Repository, In } from 'typeorm';
 import { Expense } from './entities/expense.entity';
 import { ExpenseStatus } from './enums/expense-status.enum';
 import { CreateExpenseInput } from './dto/create-expense.input';
@@ -16,7 +9,7 @@ import { ExpenseCategory } from '../expense-category/entities/expense-category.e
 import { ExpenseSubCategory } from '../expense-sub-category/entities/expense-sub-category.entity';
 import { EmployeeExpense } from '../employee-expense/entities/employee-expense.entity';
 import { User } from '../users/entities/user.entity';
-import { Role, UserRoles } from '../roles/entities/role.entity';
+import { UserRoles } from '../roles/entities/role.entity';
 import { BankTransaction } from '../bank-transactions/entities/bank-transaction.entity';
 import { BankAccount } from '../bank-account/entities/bank-account.entity';
 import { Company } from '../company/entities/company.entity';

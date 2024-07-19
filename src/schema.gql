@@ -164,7 +164,7 @@ type Forecast {
   id: ID!
   amount: Float!
   comment: String!
-  payDate: DateTime
+  payDate: Date
   expenseCategory: ExpenseCategory!
   expenseSubCategory: ExpenseSubCategory!
   createdAt: DateTime!
@@ -228,9 +228,6 @@ type Mutation {
   createCompany(createCompanyInput: CreateCompanyInput!): Company!
   updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
   deleteCompany(id: Int!): String!
-  createStaff(createStaffInput: CreateStaffInput!): Staff!
-  updateStaff(updateStaffInput: UpdateStaffInput!): Staff!
-  removeStaff(id: Int!): Staff!
   createForecast(createForecastInput: CreateForecastInput!): [Forecast!]!
   updateForecast(updateForecastInput: UpdateForecastInput!): [Forecast!]!
   removeForecast(id: Int!): String!
@@ -331,22 +328,10 @@ input UpdateCompanyInput {
   isActive: Boolean!
 }
 
-
-input CreateStaffInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
-input UpdateStaffInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
-}
-
 input CreateForecastInput {
   amount: Float!
   comment: String!
-  payDate: DateTime!
+  payDate: Date!
   expenseCategoryId: Float!
   expenseSubCategoryId: Float!
   staffId: Int

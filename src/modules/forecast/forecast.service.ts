@@ -65,12 +65,15 @@ export class ForecastService {
       forecasts.push(...savedForecast);
     } else {
       const forecastDate = new Date(
-        payDateObj.getMonth() < 3
-          ? defaultForecastYear + 1
-          : defaultForecastYear,
-        payDateObj.getMonth(),
-        payDateObj.getDate(),
+        Date.UTC(
+          payDateObj.getMonth() < 3
+            ? defaultForecastYear + 1
+            : defaultForecastYear,
+          payDateObj.getMonth(),
+          payDateObj.getDate(),
+        ),
       );
+
       const forecast = this.createForecastEntity({
         amount,
         comment,
@@ -103,9 +106,7 @@ export class ForecastService {
 
     for (let i = 0; i < 12; i++) {
       const forecastDate = new Date(
-        defaultForecastYear,
-        3 + i,
-        payDateObj.getDate(),
+        Date.UTC(defaultForecastYear, 3 + i, payDateObj.getDate(), 0, 0, 0, 0),
       );
 
       const forecast = this.createForecastEntity({
@@ -127,7 +128,6 @@ export class ForecastService {
         savedForecast.relatedForecastId = savedForecast.id;
         await this.forecastRepository.save(savedForecast);
       }
-
       forecasts.push(savedEntity);
     }
 

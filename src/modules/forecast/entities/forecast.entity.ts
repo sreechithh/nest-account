@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, Float, Int } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Float } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
@@ -12,6 +12,7 @@ import { ExpenseCategory } from '../../expense-category/entities/expense-categor
 import { ExpenseSubCategory } from '../../expense-sub-category/entities/expense-sub-category.entity';
 import { User } from '../../users/entities/user.entity';
 import { Company } from '../../company/entities/company.entity';
+import { GraphQLDate } from 'graphql-scalars';
 
 @ObjectType()
 @Entity()
@@ -29,7 +30,7 @@ export class Forecast {
   comment: string;
 
   @Column({ type: 'timestamp', nullable: true })
-  @Field({ nullable: true })
+  @Field(() => GraphQLDate, { nullable: true })
   payDate?: Date;
 
   @ManyToOne(() => ExpenseCategory, (expense) => expense.id)
