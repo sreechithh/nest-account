@@ -310,26 +310,26 @@ type Mutation {
   updateBankAccount(updateBankAccountInput: UpdateBankAccountInput!): CommonBankAccountResponse!
   removeBankAccount(id: Int!): CommonBankAccountResponse!
   login(email: String!, password: String!): LoginResponse!
-  createExpenseCategory(createExpenseCategoryInput: CreateExpenseCategoryInput!): ExpenseCategory!
-  updateExpenseCategory(id: Int!, updateExpenseCategoryInput: UpdateExpenseCategoryInput!): ExpenseCategory!
-  removeExpenseCategory(id: Int!): ExpenseCategory!
-  createExpenseSubCategory(createExpenseSubCategoryInput: CreateExpenseSubCategoryInput!): ExpenseSubCategory!
-  updateExpenseSubCategory(id: Int!, updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput!): ExpenseSubCategory!
-  removeExpenseSubCategory(id: Int!): ExpenseSubCategory!
-  createExpense(createExpenseInput: CreateExpenseInput!): Expense!
-  updateExpense(id: Int!, updateExpenseInput: UpdateExpenseInput!): Expense!
-  removeExpense(id: Int!): RemoveExpenseResponse!
-  approveExpenses(ids: [Int!]!): Boolean!
-  rejectExpenses(ids: [Int!]!): Boolean!
-  paidExpenses(ids: [Int!]!): Boolean!
-  createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): BankTransaction!
-  removeBankTransaction(id: Int!): String!
-  createCompany(createCompanyInput: CreateCompanyInput!): Company!
-  updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
-  deleteCompany(id: Int!): String!
-  createForecast(createForecastInput: CreateForecastInput!): [Forecast!]!
-  updateForecast(updateForecastInput: UpdateForecastInput!): [Forecast!]!
-  removeForecast(id: Int!): String!
+  createExpenseCategory(createExpenseCategoryInput: CreateExpenseCategoryInput!): CommonExpenseCategoryResponse!
+  updateExpenseCategory(id: Int!, updateExpenseCategoryInput: UpdateExpenseCategoryInput!): CommonExpenseCategoryResponse!
+  removeExpenseCategory(id: Int!): CommonExpenseCategoryResponse!
+  createExpenseSubCategory(createExpenseSubCategoryInput: CreateExpenseSubCategoryInput!): CommonExpenseSubCategoryResponse!
+  updateExpenseSubCategory(id: Int!, updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput!): CommonExpenseSubCategoryResponse!
+  removeExpenseSubCategory(id: Int!): CommonExpenseSubCategoryResponse!
+  createExpense(createExpenseInput: CreateExpenseInput!): CommonExpenseResponse!
+  updateExpense(id: Int!, updateExpenseInput: UpdateExpenseInput!): CommonExpenseResponse!
+  removeExpense(id: Int!): CommonExpenseResponse!
+  approveExpenses(ids: [Int!]!): CommonExpenseResponse!
+  rejectExpenses(ids: [Int!]!): CommonExpenseResponse!
+  paidExpenses(ids: [Int!]!): CommonExpenseResponse!
+  createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): CommonBankTransactionResponse!
+  removeBankTransaction(id: Int!): CommonBankTransactionResponse!
+  createCompany(createCompanyInput: CreateCompanyInput!): CommonCompanyResponse!
+  updateCompany(updateCompanyInput: UpdateCompanyInput!): CommonCompanyResponse!
+  deleteCompany(id: Int!): CommonCompanyResponse!
+  createForecast(createForecastInput: CreateForecastInput!): CommonForecastResponse!
+  updateForecast(updateForecastInput: UpdateForecastInput!): CommonForecastResponse!
+  removeForecast(id: Int!): CommonForecastResponse!
 }
 
 input CreateUserInput {
