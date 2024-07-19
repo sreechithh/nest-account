@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -44,15 +46,21 @@ export class CompanyService {
   }
 
   async findOne(id: number): Promise<CommonCompanyResponse> {
-    const data = await this.companyRepository.findOneBy({ id });
-    if (!data) {
-      throw new NotFoundException();
-    }
-    return {
-      data,
-      statusCode: 200,
-      message: 'Company fetched successfully',
-    };
+    return await this.companyRepository
+      .findOneByOrFail({ id })
+      .then((data) => {
+        return {
+          data,
+          statusCode: 200,
+          message: 'Company fetched successfully',
+        };
+      })
+      .catch(() => {
+        throw new HttpException(
+          `Company with ID ${id} was not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      });
   }
 
   async create(
@@ -89,24 +97,40 @@ export class CompanyService {
   }
 
   async remove(id: number): Promise<CommonCompanyResponse> {
-    const company = await this.companyRepository.findOne({
-      where: { id },
-      relations: ['bankAccounts'],
-    });
+    return await this.companyRepository
+      .findOne({
+        where: { id },
+        relations: ['bankAccounts'],
+      })
+      .then(async (company) => {
+        if (!company) {
+          throw new HttpException(
+            `Company with ID ${id} was not found`,
+            HttpStatus.NOT_FOUND,
+          );
+        }
+        if (company?.bankAccounts && company.bankAccounts.length > 0) {
+          throw new HttpException(
+            `Company with ID ${id} has bank accounts cannot be deleted`,
+            HttpStatus.CONFLICT,
+          );
+        }
 
-    if (
-      !company ||
-      (company?.bankAccounts && company.bankAccounts.length > 0)
-    ) {
-      throw new ConflictException(
-        `Company with ID ${id} has bank accounts and cannot be deleted`,
-      );
-    }
-    await this.companyRepository.remove(company);
+        await this.companyRepository.remove(company);
 
-    return {
-      statusCode: 200,
-      message: 'Company deleted successfully',
-    };
+        return {
+          statusCode: 200,
+          message: 'Company deleted successfully',
+        };
+      })
+      .catch((error) => {
+        if (error instanceof HttpException) {
+          throw error;
+        }
+        throw new HttpException(
+          'An error occurred while deleting the Company',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      });
   }
 }

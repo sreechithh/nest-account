@@ -2,6 +2,8 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
@@ -60,14 +62,24 @@ export class ExpenseCategoryService {
   }
 
   async findOne(id: number): Promise<CommonExpenseCategoryResponse> {
-    const data = await this.expenseCategoryRepository.findOneOrFail({
-      where: { id },
-    });
-    return {
-      data,
-      statusCode: 200,
-      message: 'Expense Category fetched successfully',
-    };
+    return await this.expenseCategoryRepository
+      .findOneOrFail({
+        where: { id },
+        relations: ['subCategories'],
+      })
+      .then((data) => {
+        return {
+          data,
+          statusCode: 200,
+          message: 'Expense Category fetched successfully',
+        };
+      })
+      .catch(() => {
+        throw new HttpException(
+          `Expense category with ID ${id} was not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      });
   }
 
   async update(
@@ -89,30 +101,50 @@ export class ExpenseCategoryService {
   }
 
   async remove(id: number): Promise<CommonExpenseCategoryResponse> {
-    const expenseCategory = await this.expenseCategoryRepository.findOneBy({
-      id: id,
-    });
-    if (!expenseCategory) {
-      throw new NotFoundException(`Expense Category with ID ${id} not found`);
-    }
-    if (expenseCategory.name === 'Staff') {
-      throw new Error(`ExpenseCategory with Name Staff cannot be deleted`);
-    }
+    return await this.expenseCategoryRepository
+      .findOne({
+        where: { id },
+      })
+      .then(async (expenseCategory) => {
+        if (!expenseCategory) {
+          throw new HttpException(
+            `Expense Category with ID ${id} was not found`,
+            HttpStatus.NOT_FOUND,
+          );
+        }
 
-    if (
-      expenseCategory.subCategories &&
-      expenseCategory.subCategories.length > 0
-    ) {
-      throw new ConflictException(
-        `ExpenseCategory with ID ${id} has subcategories and cannot be deleted`,
-      );
-    }
+        if (expenseCategory.name === 'Staff') {
+          throw new HttpException(
+            `ExpenseCategory with Name Staff cannot be deleted`,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
 
-    await this.expenseCategoryRepository.remove(expenseCategory);
+        if (
+          expenseCategory.subCategories &&
+          expenseCategory.subCategories.length > 0
+        ) {
+          throw new HttpException(
+            `ExpenseCategory with ID ${id} has subcategories and cannot be deleted`,
+            HttpStatus.CONFLICT,
+          );
+        }
 
-    return {
-      statusCode: 200,
-      message: 'Expense Category deleted successfully',
-    };
+        await this.expenseCategoryRepository.remove(expenseCategory);
+
+        return {
+          statusCode: 200,
+          message: 'Expense Category deleted successfully',
+        };
+      })
+      .catch((error) => {
+        if (error instanceof HttpException) {
+          throw error;
+        }
+        throw new HttpException(
+          'An error occurred while deleting the expense category',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      });
   }
 }

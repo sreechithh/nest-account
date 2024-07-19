@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { CreateBankTransactionInput } from './dto/create-bank-transaction.input';
 import { User } from '../users/entities/user.entity';
 import { BankTransaction } from './entities/bank-transaction.entity';
@@ -10,6 +15,8 @@ import {
   CommonBankTransactionResponse,
   PaginatedBankTransactionResponse,
 } from './dto/bank-transaction-response.dto';
+import { CommonExpenseCategoryResponse } from '../expense-category/dto/expense-category-response.dto';
+import { CommonBankAccountResponse } from '../bank-account/dto/bank-account-response.dto';
 
 @Injectable()
 export class BankTransactionsService {
@@ -25,30 +32,40 @@ export class BankTransactionsService {
     createBankTransactionInput: CreateBankTransactionInput,
   ): Promise<CommonBankTransactionResponse> {
     const { bankId, amount, comment, type } = createBankTransactionInput;
-    await this.bankAccountRepository.findOneByOrFail({
-      id: bankId,
-    });
-    const bankTransaction = this.bankTransactionRepository.create({
-      bankId,
-      amount,
-      type,
-      createdBy: user.id,
-      comment,
-    });
-    const savesBankTransaction =
-      await this.bankTransactionRepository.save(bankTransaction);
-    const netBalance = this.bankAccountService.getBankBalance(bankId);
-    const bankTransactions = await this.bankTransactionRepository.findOneOrFail(
-      {
-        where: { id: savesBankTransaction.id },
-        relations: ['bankAccount', 'createdByUser'],
-      },
-    );
 
-    return {
-      statusCode: 201,
-      message: 'Bank Transactions created successfully',
-    };
+    return this.bankAccountRepository
+      .findOneByOrFail({ id: bankId })
+      .then(() => {
+        const bankTransaction = this.bankTransactionRepository.create({
+          bankId,
+          amount,
+          type,
+          createdBy: user.id,
+          comment,
+        });
+        return this.bankTransactionRepository.save(bankTransaction);
+      })
+      .then((savedBankTransaction) => {
+        return Promise.all([
+          this.bankAccountService.getBankBalance(bankId),
+          this.bankTransactionRepository.findOneOrFail({
+            where: { id: savedBankTransaction.id },
+            relations: ['bankAccount', 'createdByUser'],
+          }),
+        ]).then(([netBalance, bankTransaction]) => {
+          return {
+            statusCode: 201,
+            message: 'Bank Transactions created successfully',
+            data: bankTransaction,
+          };
+        });
+      })
+      .catch(() => {
+        throw new HttpException(
+          `Bank Account with ID ${bankId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      });
   }
 
   async findAll(
@@ -85,33 +102,41 @@ export class BankTransactionsService {
   }
 
   async findOne(id: number): Promise<CommonBankTransactionResponse> {
-    const bankTransaction = await this.bankTransactionRepository.findOneBy({
-      id,
-    });
-    if (!bankTransaction) {
-      throw new NotFoundException(`Transaction with ID ${id} not found`);
-    }
-    const netBalance = await this.bankAccountService.getBankBalance(
-      bankTransaction.id,
-    );
-
-    return {
-      data: { ...bankTransaction, bankBalance: netBalance },
-      statusCode: 200,
-      message: 'Transaction fetched successfully',
-    };
+    return await this.bankTransactionRepository
+      .findOneOrFail({
+        where: { id },
+      })
+      .then((data) => {
+        return {
+          data,
+          statusCode: 200,
+          message: 'Transaction fetched successfully',
+        };
+      })
+      .catch(() => {
+        throw new HttpException(
+          `Transaction with ID ${id} was not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      });
   }
 
   async remove(id: number): Promise<CommonBankTransactionResponse> {
-    const bankTransaction =
-      await this.bankTransactionRepository.findOneByOrFail({
-        id,
+    return this.bankTransactionRepository
+      .findOneByOrFail({ id })
+      .then((bankTransaction) => {
+        return this.bankTransactionRepository
+          .remove(bankTransaction)
+          .then(() => ({
+            statusCode: 200,
+            message: 'Bank Transaction deleted successfully',
+          }));
+      })
+      .catch(() => {
+        throw new HttpException(
+          `Bank Transaction with ID ${id} not found`,
+          HttpStatus.NOT_FOUND,
+        );
       });
-    await this.bankTransactionRepository.remove(bankTransaction);
-
-    return {
-      statusCode: 200,
-      message: 'Transaction deleted successfully',
-    };
   }
 }

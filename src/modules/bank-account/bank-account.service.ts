@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository, FindManyOptions } from 'typeorm';
 import { BankAccount } from './entities/bank-account.entity';
@@ -45,27 +50,37 @@ export class BankAccountService {
     createBankAccountInput: CreateBankAccountInput,
   ): Promise<CommonBankAccountResponse> {
     const { name, companyId, accountNumber } = createBankAccountInput;
+    return this.companyRepository
+      .findOne({
+        where: { id: companyId },
+      })
+      .then((company) => {
+        if (!company) {
+          throw new NotFoundException(`Company with ID ${companyId} not found`);
+        }
+        const bankAccount = this.bankAccountRepository.create({
+          name,
+          accountNumber,
+          company,
+          createdBy: user.id,
+          updatedBy: user.id,
+        });
 
-    const company = await this.companyRepository.findOne({
-      where: { id: companyId },
-    });
-
-    if (!company) {
-      throw new NotFoundException(`Company with ID ${companyId} not found`);
-    }
-    const bankAccount = this.bankAccountRepository.create({
-      name,
-      accountNumber,
-      company,
-      createdBy: user.id,
-      updatedBy: user.id,
-    });
-
-    await this.bankAccountRepository.save(bankAccount);
-    return {
-      statusCode: 201,
-      message: 'Bank Account created successfully',
-    };
+        return this.bankAccountRepository.save(bankAccount);
+      })
+      .then(() => ({
+        statusCode: 201,
+        message: 'Bank Account created successfully',
+      }))
+      .catch((error) => {
+        if (error instanceof NotFoundException) {
+          throw error;
+        }
+        throw new HttpException(
+          'Validation failed or an unexpected error occurred',
+          HttpStatus.BAD_REQUEST,
+        );
+      });
   }
 
   async findAll(
@@ -101,18 +116,30 @@ export class BankAccountService {
   }
 
   async findOne(id: number): Promise<CommonBankAccountResponse> {
-    const bankAccount = await this.bankAccountRepository.findOneBy({ id });
-    if (!bankAccount) {
-      throw new NotFoundException(`BankAccount with ID ${id} not found`);
-    }
-    const netBalance = await this.getBankBalance(bankAccount.id);
-    bankAccount.bankBalance = netBalance;
-
-    return {
-      data: bankAccount,
-      statusCode: 200,
-      message: 'Bank Account fetched successfully',
-    };
+    return this.bankAccountRepository
+      .findOneBy({ id })
+      .then((bankAccount) => {
+        if (!bankAccount) {
+          throw new NotFoundException(`Bank Account with ID ${id} not found`);
+        }
+        return this.getBankBalance(bankAccount.id).then((netBalance) => {
+          bankAccount.bankBalance = netBalance;
+          return {
+            data: bankAccount,
+            statusCode: 200,
+            message: 'Bank Account fetched successfully',
+          };
+        });
+      })
+      .catch((error) => {
+        if (error instanceof NotFoundException) {
+          throw error;
+        }
+        throw new HttpException(
+          'An unexpected error occurred',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      });
   }
 
   async update(
@@ -121,37 +148,65 @@ export class BankAccountService {
   ): Promise<CommonBankAccountResponse> {
     const { id, accountNumber, companyId, name, isActive } =
       updateBankAccountInput;
-    const company = await this.companyRepository.findOneByOrFail({
-      id: companyId,
-    });
-    const bankAccount = await this.bankAccountRepository.findOneOrFail({
-      where: { id },
-      relations: ['bankTransactions', 'company'],
-    });
-    bankAccount.id = id;
-    bankAccount.accountNumber = accountNumber;
-    bankAccount.company = company;
-    bankAccount.name = name;
-    bankAccount.isActive = isActive;
-    bankAccount.updatedBy = user.id;
-    const savedBankEntity = await this.bankAccountRepository.save(bankAccount);
-    const netBalance = await this.getBankBalance(id);
 
-    return {
-      // data: { ...savedBankEntity, bankBalance: netBalance },
-      statusCode: 200,
-      message: 'Bank Account updated successfully',
-    };
+    return this.companyRepository
+      .findOneBy({ id: companyId })
+      .then((company) => {
+        if (!company) {
+          throw new NotFoundException(`Company with ID ${companyId} not found`);
+        }
+        return this.bankAccountRepository.findOne({
+          where: { id },
+          relations: ['bankTransactions', 'company'],
+        });
+      })
+      .then((bankAccount) => {
+        if (!bankAccount) {
+          throw new NotFoundException(`Bank Account with ID ${id} not found`);
+        }
+
+        bankAccount.accountNumber = accountNumber;
+        bankAccount.company = bankAccount.company;
+        bankAccount.name = name;
+        bankAccount.isActive = isActive;
+        bankAccount.updatedBy = user.id;
+
+        return this.bankAccountRepository.save(bankAccount);
+      })
+      .then((savedBankEntity) => {
+        return this.getBankBalance(id).then((netBalance) => {
+          return {
+            data: { ...savedBankEntity, bankBalance: netBalance },
+            statusCode: 200,
+            message: 'Bank Account updated successfully',
+          };
+        });
+      })
+      .catch((error) => {
+        if (error instanceof NotFoundException) {
+          throw error;
+        }
+        throw new HttpException(
+          'An unexpected error occurred',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      });
   }
 
   async remove(id: number): Promise<CommonBankAccountResponse> {
-    const bankAccount = await this.bankAccountRepository.findOneByOrFail({
-      id,
-    });
-    await this.bankAccountRepository.remove(bankAccount);
-    return {
-      statusCode: 200,
-      message: 'Bank Account deleted successfully',
-    };
+    return this.bankAccountRepository
+      .findOneByOrFail({ id })
+      .then((bankAccount) => {
+        return this.bankAccountRepository.remove(bankAccount).then(() => ({
+          statusCode: 200,
+          message: 'Bank Account deleted successfully',
+        }));
+      })
+      .catch(() => {
+        throw new HttpException(
+          `Bank Account with ID ${id} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      });
   }
 }

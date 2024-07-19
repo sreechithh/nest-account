@@ -198,23 +198,32 @@ export class ExpenseService {
   }
 
   async findOne(id: number): Promise<CommonExpenseResponse> {
-    const data = await this.expenseRepository.findOneOrFail({
-      where: { id },
-      relations: [
-        'expenseCategory',
-        'expenseSubCategory',
-        'employeeExpense',
-        'employeeExpense.user',
-        'bankTransaction',
-        'bankTransaction.bankAccount',
-        'company',
-      ],
-    });
-    return {
-      data,
-      statusCode: 200,
-      message: 'Expenses fetched successfully',
-    };
+    return await this.expenseRepository
+      .findOneOrFail({
+        where: { id },
+        relations: [
+          'expenseCategory',
+          'expenseSubCategory',
+          'employeeExpense',
+          'employeeExpense.user',
+          'bankTransaction',
+          'bankTransaction.bankAccount',
+          'company',
+        ],
+      })
+      .then((data) => {
+        return {
+          data,
+          statusCode: 200,
+          message: 'Expense fetched successfully',
+        };
+      })
+      .catch(() => {
+        throw new HttpException(
+          `Expense with ID ${id} was not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      });
   }
 
   async update(

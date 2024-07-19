@@ -1,6 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, Raw, Repository } from 'typeorm';
+import {
+  FindManyOptions,
+  Raw,
+  Repository,
+  ObjectLiteral,
+  FindOptionsWhere,
+} from 'typeorm';
 import { Forecast } from './entities/forecast.entity';
 import { User } from '../users/entities/user.entity';
 import { ExpenseSubCategory } from '../expense-sub-category/entities/expense-sub-category.entity';

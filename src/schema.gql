@@ -143,21 +143,113 @@ type User {
   employeeExpenses: [EmployeeExpense!]!
 }
 
+type CommonUsersResponse {
+  statusCode: Int!
+  message: String!
+  data: User
+}
+
 type PaginatedUsersResponse {
   data: [User!]!
   totalRows: Int!
   totalPages: Int!
   currentPage: Int!
+  statusCode: Int!
+  message: String!
+}
+
+type CommonBankAccountResponse {
+  statusCode: Int!
+  message: String!
+  data: BankAccount
+}
+
+type PaginatedBankAccountResponse {
+  data: [BankAccount!]!
+  totalRows: Int!
+  totalPages: Int!
+  currentPage: Int!
+  statusCode: Int!
+  message: String!
 }
 
 type LoginResponse {
   access_token: String!
 }
 
-type RemoveExpenseResponse {
+type CommonCompanyResponse {
+  statusCode: Int!
+  message: String!
+  data: Company
+}
+
+type PaginatedCompanyResponse {
+  data: [Company!]!
+  totalRows: Int!
+  totalPages: Int!
+  currentPage: Int!
+  statusCode: Int!
+  message: String!
+}
+
+type CommonExpenseCategoryResponse {
+  statusCode: Int!
+  message: String!
+  data: ExpenseCategory
+}
+
+type PaginatedExpenseCategoryResponse {
+  data: [ExpenseCategory!]!
+  totalRows: Int!
+  totalPages: Int!
+  currentPage: Int!
+  statusCode: Int!
+  message: String!
+}
+
+type CommonExpenseSubCategoryResponse {
+  statusCode: Int!
+  message: String!
+  data: ExpenseSubCategory
+}
+
+type PaginatedExpenseSubCategoryResponse {
+  data: [ExpenseSubCategory!]!
+  totalRows: Int!
+  totalPages: Int!
+  currentPage: Int!
+  statusCode: Int!
+  message: String!
+}
+
+type CommonBankTransactionResponse {
+  statusCode: Int!
+  message: String!
+  data: BankTransaction
+}
+
+type PaginatedBankTransactionResponse {
+  data: [BankTransaction!]!
+  totalRows: Int!
+  totalPages: Int!
+  currentPage: Int!
+  statusCode: Int!
+  message: String!
+}
+
+type CommonExpenseResponse {
   statusCode: Int!
   message: String!
   data: Expense
+}
+
+type PaginatedExpenseResponse {
+  data: [Expense!]!
+  totalRows: Int!
+  totalPages: Int!
+  currentPage: Int!
+  statusCode: Int!
+  message: String!
 }
 
 type Forecast {
@@ -175,65 +267,69 @@ type Forecast {
   company: Company!
 }
 
+type CommonForecastResponse {
+  statusCode: Int!
+  message: String!
+  data: Forecast
+}
+
 type PaginatedForecastResponse {
   data: [Forecast!]!
   totalRows: Int!
   totalPages: Int!
   currentPage: Int!
+  statusCode: Int!
+  message: String!
 }
 
 type Query {
   users(perPage: Int! = 10, page: Int! = 1, isActive: Boolean = false, role: String = null): PaginatedUsersResponse!
-  user(id: Int!): User!
-  bankAccounts: [BankAccount!]!
-  bankAccount(id: Int!): BankAccount!
-  expenseCategories: [ExpenseCategory!]!
-  expenseCategory(id: Int!): ExpenseCategory!
-  expenseSubCategories: [ExpenseSubCategory!]!
-  expenseSubCategory(id: Int!): ExpenseSubCategory!
-  expenses(pageSize: Int! = 10, pageNumber: Int! = 1): [Expense!]!
-  expense(id: Int!): Expense!
+  user(id: Int!): CommonUsersResponse!
+  bankAccounts(perPage: Int!, page: Int!): PaginatedBankAccountResponse!
+  bankAccount(id: Int!): CommonBankAccountResponse!
+  expenseCategories(perPage: Int!, page: Int!): PaginatedExpenseCategoryResponse!
+  expenseCategory(id: Int!): CommonExpenseCategoryResponse!
+  expenseSubCategories(perPage: Int!, page: Int!): PaginatedExpenseSubCategoryResponse!
+  expenseSubCategory(id: Int!): CommonExpenseSubCategoryResponse!
+  expenses(perPage: Int! = 10, page: Int!): PaginatedExpenseResponse!
+  expense(id: Int!): CommonExpenseResponse!
   calculateExpense(month: Int, year: Int, startDate: String, endDate: String, companyId: Int): Float!
-  bankTransactions(pageSize: Int! = 10, pageNumber: Int! = 1): [BankTransaction!]!
-  bankTransaction(id: Int!): BankTransaction!
-  companies(pageSize: Int! = 10, pageNumber: Int! = 1): [Company!]!
-  company(id: Int!): Company!
+  bankTransactions(perPage: Int!, page: Int!): PaginatedBankTransactionResponse!
+  bankTransaction(id: Int!): CommonBankTransactionResponse!
+  companies(pageSize: Int! = 10, pageNumber: Int! = 1): PaginatedCompanyResponse!
+  company(id: Int!): CommonCompanyResponse!
   forecasts(perPage: Int! = 10, page: Int! = 1, companyId: Int!): PaginatedForecastResponse!
-  forecast(id: Int!): Forecast!
+  forecast(id: Int!): CommonForecastResponse!
   calculateForecast(month: Int, companyId: Int): Float!
 }
 
 type Mutation {
-  createUser(createUserInput: CreateUserInput!): String!
-  updateUser(updateUserInput: UpdateUserInput!): String!
-  removeUser(id: Int!): User!
-  createBankAccount(createBankAccountInput: CreateBankAccountInput!): BankAccount!
-  updateBankAccount(updateBankAccountInput: UpdateBankAccountInput!): BankAccount!
-  removeBankAccount(id: Int!): Boolean!
+  createUser(createUserInput: CreateUserInput!): CommonUsersResponse!
+  updateUser(updateUserInput: UpdateUserInput!): CommonUsersResponse!
+  createBankAccount(createBankAccountInput: CreateBankAccountInput!): CommonBankAccountResponse!
+  updateBankAccount(updateBankAccountInput: UpdateBankAccountInput!): CommonBankAccountResponse!
+  removeBankAccount(id: Int!): CommonBankAccountResponse!
   login(email: String!, password: String!): LoginResponse!
-  createExpenseCategory(createExpenseCategoryInput: CreateExpenseCategoryInput!): ExpenseCategory!
-  updateExpenseCategory(id: Int!, updateExpenseCategoryInput: UpdateExpenseCategoryInput!): ExpenseCategory!
-  removeExpenseCategory(id: Int!): ExpenseCategory!
-  createExpenseSubCategory(createExpenseSubCategoryInput: CreateExpenseSubCategoryInput!): ExpenseSubCategory!
-  updateExpenseSubCategory(id: Int!, updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput!): ExpenseSubCategory!
-  removeExpenseSubCategory(id: Int!): ExpenseSubCategory!
-  createExpense(createExpenseInput: CreateExpenseInput!): Expense!
-  updateExpense(id: Int!, updateExpenseInput: UpdateExpenseInput!): Expense!
-  removeExpense(id: Int!): RemoveExpenseResponse!
-  approveExpenses(ids: [Int!]!): Boolean!
-  rejectExpenses(ids: [Int!]!): Boolean!
-  paidExpenses(ids: [Int!]!): Boolean!
-  createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): BankTransaction!
-  removeBankTransaction(id: Int!): String!
-  createCompany(createCompanyInput: CreateCompanyInput!): Company!
-  updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
-  deleteCompany(id: Int!): String!
-  createStaff(createStaffInput: CreateStaffInput!): Staff!
-  updateStaff(updateStaffInput: UpdateStaffInput!): Staff!
-  removeStaff(id: Int!): Staff!
-  createForecast(createForecastInput: CreateForecastInput!): [Forecast!]!
-  updateForecast(updateForecastInput: UpdateForecastInput!): [Forecast!]!
-  removeForecast(id: Int!): String!
+  createExpenseCategory(createExpenseCategoryInput: CreateExpenseCategoryInput!): CommonExpenseCategoryResponse!
+  updateExpenseCategory(id: Int!, updateExpenseCategoryInput: UpdateExpenseCategoryInput!): CommonExpenseCategoryResponse!
+  removeExpenseCategory(id: Int!): CommonExpenseCategoryResponse!
+  createExpenseSubCategory(createExpenseSubCategoryInput: CreateExpenseSubCategoryInput!): CommonExpenseSubCategoryResponse!
+  updateExpenseSubCategory(id: Int!, updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput!): CommonExpenseSubCategoryResponse!
+  removeExpenseSubCategory(id: Int!): CommonExpenseSubCategoryResponse!
+  createExpense(createExpenseInput: CreateExpenseInput!): CommonExpenseResponse!
+  updateExpense(id: Int!, updateExpenseInput: UpdateExpenseInput!): CommonExpenseResponse!
+  removeExpense(id: Int!): CommonExpenseResponse!
+  approveExpenses(ids: [Int!]!): CommonExpenseResponse!
+  rejectExpenses(ids: [Int!]!): CommonExpenseResponse!
+  paidExpenses(ids: [Int!]!): CommonExpenseResponse!
+  createBankTransaction(createBankTransactionInput: CreateBankTransactionInput!): CommonBankTransactionResponse!
+  removeBankTransaction(id: Int!): CommonBankTransactionResponse!
+  createCompany(createCompanyInput: CreateCompanyInput!): CommonCompanyResponse!
+  updateCompany(updateCompanyInput: UpdateCompanyInput!): CommonCompanyResponse!
+  deleteCompany(id: Int!): CommonCompanyResponse!
+  createForecast(createForecastInput: CreateForecastInput!): CommonForecastResponse!
+  updateForecast(updateForecastInput: UpdateForecastInput!): CommonForecastResponse!
+  removeForecast(id: Int!): CommonForecastResponse!
 }
 
 input CreateUserInput {
@@ -329,18 +425,6 @@ input UpdateCompanyInput {
   id: ID!
   name: String!
   isActive: Boolean!
-}
-
-
-input CreateStaffInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
-input UpdateStaffInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
 }
 
 input CreateForecastInput {

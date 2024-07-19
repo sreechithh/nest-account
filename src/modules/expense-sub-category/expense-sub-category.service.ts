@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
 import { ExpenseSubCategory } from './entities/expense-sub-category.entity';
@@ -22,14 +27,18 @@ export class ExpenseSubCategoryService {
   async create(
     createExpenseSubCategoryInput: CreateExpenseSubCategoryInput,
   ): Promise<CommonExpenseSubCategoryResponse> {
-    const expenseCategory = await this.expenseCategoryRepository.findOneBy({
-      id: createExpenseSubCategoryInput.expenseCategoryId,
-    });
-    if (!expenseCategory) {
-      throw new NotFoundException(
-        `ExpenseCategory with ID ${createExpenseSubCategoryInput.expenseCategoryId} not found`,
-      );
-    }
+    const [expenseCategory] = await Promise.all([
+      this.expenseCategoryRepository
+        .findOneByOrFail({
+          id: createExpenseSubCategoryInput.expenseCategoryId,
+        })
+        .catch(() => {
+          throw new HttpException(
+            `ExpenseCategory with ID ${createExpenseSubCategoryInput.expenseCategoryId} not found`,
+            HttpStatus.NOT_FOUND,
+          );
+        }),
+    ]);
 
     const expenseSubCategory = this.expenseSubCategoryRepository.create({
       name: createExpenseSubCategoryInput.name,
@@ -42,6 +51,7 @@ export class ExpenseSubCategoryService {
     return {
       statusCode: 201,
       message: 'Expense Sub Category created successfully',
+      data: expenseSubCategory,
     };
   }
 
@@ -70,20 +80,24 @@ export class ExpenseSubCategoryService {
   }
 
   async findOne(id: number): Promise<CommonExpenseSubCategoryResponse> {
-    const data = await this.expenseSubCategoryRepository.findOne({
-      where: { id },
-      relations: ['expenseCategory', 'expenses'],
-    });
-    if (!data) {
-      throw new NotFoundException(
-        `Expense Subcategory with ID ${id} was not found`,
-      );
-    }
-    return {
-      data,
-      statusCode: 200,
-      message: 'Expense Sub category fetched successfully',
-    };
+    return await this.expenseSubCategoryRepository
+      .findOneOrFail({
+        where: { id },
+        relations: ['expenseCategory', 'expenses'],
+      })
+      .then((data) => {
+        return {
+          data,
+          statusCode: 200,
+          message: 'Expense Category fetched successfully',
+        };
+      })
+      .catch(() => {
+        throw new HttpException(
+          `Expense category with ID ${id} was not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      });
   }
 
   async update(
@@ -111,15 +125,26 @@ export class ExpenseSubCategoryService {
     };
   }
   async remove(id: number): Promise<CommonExpenseSubCategoryResponse> {
-    const expenseSubCategory =
-      await this.expenseSubCategoryRepository.findOneBy({ id: id });
-    if (!expenseSubCategory) {
-      throw new NotFoundException(`Expense Category with ID ${id} not found`);
+    try {
+      const expenseSubCategory =
+        await this.expenseSubCategoryRepository.findOneByOrFail({ id });
+
+      await this.expenseSubCategoryRepository.remove(expenseSubCategory);
+
+      return {
+        statusCode: 200,
+        message: 'Expense Sub Category deleted successfully',
+      };
+    } catch (error) {
+      if (error.name === 'EntityNotFound') {
+        throw new NotFoundException(
+          `Expense Sub Category with ID ${id} not found`,
+        );
+      }
+      throw new HttpException(
+        'Failed to delete expense sub-category',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-    await this.expenseSubCategoryRepository.remove(expenseSubCategory);
-    return {
-      statusCode: 200,
-      message: 'Expense deleted successfully',
-    };
   }
 }
