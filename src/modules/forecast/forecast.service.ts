@@ -8,7 +8,10 @@ import { ExpenseCategory } from '../expense-category/entities/expense-category.e
 import { CreateForecastInput } from './dto/create-forecast.input';
 import { UpdateForecastInput } from './dto/update-forecast.input';
 import { Company } from '../company/entities/company.entity';
-import { PaginatedForecastResponse } from './dto/paginated-forecast-response.dto';
+import {
+  CommonForecastResponse,
+  PaginatedForecastResponse,
+} from './dto/forecast-response.dto';
 const defaultForecastYear: number = 2023;
 
 @Injectable()
@@ -29,7 +32,7 @@ export class ForecastService {
   async create(
     user: User,
     createForecastInput: CreateForecastInput,
-  ): Promise<Forecast[]> {
+  ): Promise<CommonForecastResponse> {
     const {
       amount,
       comment,
@@ -85,7 +88,11 @@ export class ForecastService {
       forecasts.push(forecast);
     }
 
-    return this.forecastRepository.save(forecasts);
+    await this.forecastRepository.save(forecasts);
+    return {
+      statusCode: 201,
+      message: 'Forecast created successfully',
+    };
   }
 
   private async generateForecastsForYear(
@@ -199,11 +206,13 @@ export class ForecastService {
       totalRows,
       totalPages,
       currentPage: page,
+      statusCode: 200,
+      message: 'Forecasts fetched successfully',
     };
   }
 
-  findOne(id: number): Promise<Forecast> {
-    return this.forecastRepository.findOneOrFail({
+  async findOne(id: number): Promise<CommonForecastResponse> {
+    const data = await this.forecastRepository.findOneOrFail({
       where: { id },
       relations: [
         'expenseCategory',
@@ -213,9 +222,17 @@ export class ForecastService {
         'company',
       ],
     });
+    return {
+      data,
+      statusCode: 200,
+      message: 'Forecast fetched successfully',
+    };
   }
 
-  async update(user: User, updateForecastInput: UpdateForecastInput) {
+  async update(
+    user: User,
+    updateForecastInput: UpdateForecastInput,
+  ): Promise<CommonForecastResponse> {
     const {
       id,
       amount,
@@ -266,22 +283,32 @@ export class ForecastService {
       eachForecast.updatedBy = user;
     });
 
-    return this.forecastRepository.save(forecasts);
+    await this.forecastRepository.save(forecasts);
+    return {
+      statusCode: 200,
+      message: 'Forecast updated successfully',
+    };
   }
 
-  async remove(id: number) {
+  async remove(id: number): Promise<CommonForecastResponse> {
     const forecast = await this.forecastRepository.findOneByOrFail({ id });
 
     if (forecast.relatedForecastId) {
       await this.forecastRepository.delete({
         relatedForecastId: forecast.relatedForecastId,
       });
-
-      return `ID with #${id} has been removed from forecast with all related forecasts`;
+      return {
+        statusCode: 200,
+        message: `ID with #${id} has been removed from forecast with all related forecasts`,
+      };
+      // return `ID with #${id} has been removed from forecast with all related forecasts`;
     }
     await this.forecastRepository.remove(forecast);
 
-    return `ID with #${id} has been removed from forecast`;
+    return {
+      statusCode: 200,
+      message: `ID with #${id} has been removed from forecast`,
+    };
   }
 
   private async checkExpenseCategoryAndStaffExists(

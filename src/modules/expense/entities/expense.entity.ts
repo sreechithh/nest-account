@@ -105,7 +105,7 @@ export class Expense {
   @OneToOne(
     () => EmployeeExpense,
     (employeeExpense) => employeeExpense.expense,
-    { nullable: true, onDelete: 'CASCADE' },
+    { nullable: true, onDelete: 'CASCADE', eager: true },
   )
   employeeExpense: EmployeeExpense;
 

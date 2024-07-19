@@ -6,6 +6,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
 import { BankAccountService } from '../bank-account/bank-account.service';
 import { BankAccount } from '../bank-account/entities/bank-account.entity';
+import {
+  CommonBankTransactionResponse,
+  PaginatedBankTransactionResponse,
+} from './dto/bank-transaction-response.dto';
 
 @Injectable()
 export class BankTransactionsService {
@@ -19,7 +23,7 @@ export class BankTransactionsService {
   async create(
     user: User,
     createBankTransactionInput: CreateBankTransactionInput,
-  ) {
+  ): Promise<CommonBankTransactionResponse> {
     const { bankId, amount, comment, type } = createBankTransactionInput;
     await this.bankAccountRepository.findOneByOrFail({
       id: bankId,
@@ -40,22 +44,27 @@ export class BankTransactionsService {
         relations: ['bankAccount', 'createdByUser'],
       },
     );
-    return { ...bankTransactions, bankBalance: netBalance };
+
+    return {
+      statusCode: 201,
+      message: 'Bank Transactions created successfully',
+    };
   }
 
   async findAll(
-    pageSize: number = 10,
-    pageNumber: number = 1,
-    searchQuery?: string,
-  ): Promise<BankTransaction[]> {
+    perPage: number,
+    page: number,
+  ): Promise<PaginatedBankTransactionResponse> {
     const options: FindManyOptions<BankTransaction> = {
-      take: pageSize,
-      skip: (pageNumber - 1) * pageSize,
+      take: perPage,
+      skip: (page - 1) * perPage,
       relations: ['bankAccount', 'createdByUser'],
+      order: { id: 'DESC' },
     };
-    const transactions = await this.bankTransactionRepository.find(options);
 
-    return await Promise.all(
+    const [transactions, totalRows] =
+      await this.bankTransactionRepository.findAndCount(options);
+    const data = await Promise.all(
       transactions.map(async (transaction) => {
         const netBalance = await this.bankAccountService.getBankBalance(
           transaction.bankAccount.id,
@@ -63,25 +72,46 @@ export class BankTransactionsService {
         return { ...transaction, bankBalance: netBalance };
       }),
     );
+    const totalPages = Math.ceil(totalRows / perPage);
+
+    return {
+      data,
+      totalRows,
+      totalPages,
+      currentPage: page,
+      statusCode: 200,
+      message: 'Bank Transactions fetched successfully',
+    };
   }
 
-  async findOne(id: number): Promise<any> {
-    const bankAccount = await this.bankTransactionRepository.findOneBy({ id });
-    if (!bankAccount) {
+  async findOne(id: number): Promise<CommonBankTransactionResponse> {
+    const bankTransaction = await this.bankTransactionRepository.findOneBy({
+      id,
+    });
+    if (!bankTransaction) {
       throw new NotFoundException(`Transaction with ID ${id} not found`);
     }
-    const netBalance = this.bankAccountService.getBankBalance(bankAccount.id);
+    const netBalance = await this.bankAccountService.getBankBalance(
+      bankTransaction.id,
+    );
 
-    return { ...bankAccount, bankBalance: netBalance };
+    return {
+      data: { ...bankTransaction, bankBalance: netBalance },
+      statusCode: 200,
+      message: 'Transaction fetched successfully',
+    };
   }
 
-  async remove(id: number): Promise<string> {
+  async remove(id: number): Promise<CommonBankTransactionResponse> {
     const bankTransaction =
       await this.bankTransactionRepository.findOneByOrFail({
         id,
       });
     await this.bankTransactionRepository.remove(bankTransaction);
 
-    return `Transaction id with ${id} has been removed`;
+    return {
+      statusCode: 200,
+      message: 'Transaction deleted successfully',
+    };
   }
 }

@@ -10,19 +10,22 @@ import { Roles } from '../auth/decorators/roles';
 import { UserRoles } from '../roles/entities/role.entity';
 import { CurrentUser } from '../auth/decorators/loggin.user';
 import { User } from '../users/entities/user.entity';
-import { PaginatedForecastResponse } from './dto/paginated-forecast-response.dto';
+import {
+  PaginatedForecastResponse,
+  CommonForecastResponse,
+} from './dto/forecast-response.dto';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Resolver(() => Forecast)
 export class ForecastResolver {
   constructor(private readonly forecastService: ForecastService) {}
 
-  @Mutation(() => [Forecast])
+  @Mutation(() => CommonForecastResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   createForecast(
     @CurrentUser() user: User,
     @Args('createForecastInput') createForecastInput: CreateForecastInput,
-  ) {
+  ): Promise<CommonForecastResponse> {
     return this.forecastService.create(user, createForecastInput);
   }
 
@@ -37,24 +40,28 @@ export class ForecastResolver {
     return this.forecastService.findAll(perPage, page, (companyId = null));
   }
 
-  @Query(() => Forecast, { name: 'forecast' })
+  @Query(() => CommonForecastResponse, { name: 'forecast' })
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
-  findOne(@Args('id', { type: () => Int }) id: number) {
+  findOne(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<CommonForecastResponse> {
     return this.forecastService.findOne(id);
   }
 
-  @Mutation(() => [Forecast])
+  @Mutation(() => CommonForecastResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   updateForecast(
     @CurrentUser() user: User,
     @Args('updateForecastInput') updateForecastInput: UpdateForecastInput,
-  ) {
+  ): Promise<CommonForecastResponse> {
     return this.forecastService.update(user, updateForecastInput);
   }
 
-  @Mutation(() => String)
+  @Mutation(() => CommonForecastResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
-  removeForecast(@Args('id', { type: () => Int }) id: number) {
+  removeForecast(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<CommonForecastResponse> {
     return this.forecastService.remove(id);
   }
 

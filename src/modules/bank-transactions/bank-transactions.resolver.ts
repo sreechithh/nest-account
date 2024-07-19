@@ -9,6 +9,10 @@ import { Roles } from '../auth/decorators/roles';
 import { UserRoles } from '../roles/entities/role.entity';
 import { CurrentUser } from '../auth/decorators/loggin.user';
 import { User } from '../users/entities/user.entity';
+import {
+  CommonBankTransactionResponse,
+  PaginatedBankTransactionResponse,
+} from './dto/bank-transaction-response.dto';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Resolver(() => BankTransaction)
@@ -17,38 +21,41 @@ export class BankTransactionsResolver {
     private readonly bankTransactionsService: BankTransactionsService,
   ) {}
 
-  @Mutation(() => BankTransaction)
+  @Mutation(() => CommonBankTransactionResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   createBankTransaction(
     @CurrentUser() user: User,
     @Args('createBankTransactionInput')
     createBankTransactionInput: CreateBankTransactionInput,
-  ) {
+  ): Promise<CommonBankTransactionResponse> {
     return this.bankTransactionsService.create(
       user,
       createBankTransactionInput,
     );
   }
 
-  @Query(() => [BankTransaction], { name: 'bankTransactions' })
+  @Query(() => PaginatedBankTransactionResponse, { name: 'bankTransactions' })
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   async findAll(
-    @Args('pageSize', { type: () => Int, defaultValue: 10 }) pageSize: number,
-    @Args('pageNumber', { type: () => Int, defaultValue: 1 })
-    pageNumber: number,
-  ): Promise<BankTransaction[]> {
-    return this.bankTransactionsService.findAll(pageSize, pageNumber);
+    @Args('perPage', { type: () => Int }) perPage: number,
+    @Args('page', { type: () => Int }) page: number,
+  ): Promise<PaginatedBankTransactionResponse> {
+    return this.bankTransactionsService.findAll(perPage, page);
   }
 
-  @Query(() => BankTransaction, { name: 'bankTransaction' })
+  @Query(() => CommonBankTransactionResponse, { name: 'bankTransaction' })
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
-  findOne(@Args('id', { type: () => Int }) id: number) {
+  findOne(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<CommonBankTransactionResponse> {
     return this.bankTransactionsService.findOne(id);
   }
 
-  @Mutation(() => String)
+  @Mutation(() => CommonBankTransactionResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
-  removeBankTransaction(@Args('id', { type: () => Int }) id: number) {
+  removeBankTransaction(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<CommonBankTransactionResponse> {
     return this.bankTransactionsService.remove(id);
   }
 }
