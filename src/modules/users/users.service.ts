@@ -14,7 +14,10 @@ import { Role, UserRoles } from '../roles/entities/role.entity';
 import { Staff } from '../staff/entities/staff.entity';
 import { Company } from '../company/entities/company.entity';
 import * as bcrypt from 'bcrypt';
-import { PaginatedUsersResponse } from './dto/paginated-users-response.dto';
+import {
+  CommonUsersResponse,
+  PaginatedUsersResponse,
+} from './dto/users-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -29,7 +32,10 @@ export class UsersService {
     private companyRepository: Repository<Company>,
   ) {}
 
-  async create(user: User, createUserInput: CreateUserInput) {
+  async create(
+    user: User,
+    createUserInput: CreateUserInput,
+  ): Promise<CommonUsersResponse> {
     const {
       name,
       email,
@@ -88,8 +94,10 @@ export class UsersService {
       });
       await this.staffRepository.save(staff);
     }
-
-    return 'Created successfully';
+    return {
+      statusCode: 201,
+      message: 'Users created successfully',
+    };
   }
 
   async findAll(
@@ -131,6 +139,8 @@ export class UsersService {
       totalRows,
       totalPages,
       currentPage: page,
+      statusCode: 200,
+      message: 'Users fetched successfully',
     };
   }
 
@@ -141,7 +151,10 @@ export class UsersService {
     });
   }
 
-  async update(user: User, updateUserInput: UpdateUserInput) {
+  async update(
+    user: User,
+    updateUserInput: UpdateUserInput,
+  ): Promise<CommonUsersResponse> {
     const {
       id,
       name,
@@ -221,14 +234,37 @@ export class UsersService {
       await this.staffRepository.save(staff);
     }
 
-    return 'Updated successfully';
+    return {
+      statusCode: 200,
+      message: 'Users updated successfully',
+    };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+  // remove(id: number) {
+  //   return `This action removes a #${id} user`;
+  // }
 
-  async findOne(options: FindOneOptions<User>): Promise<User | null> {
-    return this.usersRepository.findOne(options);
+  async findOne(options: FindOneOptions<User>): Promise<CommonUsersResponse> {
+    return this.usersRepository
+      .findOne(options)
+      .then((user) => {
+        if (!user) {
+          throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+        }
+        return {
+          statusCode: 200,
+          message: 'User fetched successfully',
+          data: user,
+        };
+      })
+      .catch((error) => {
+        if (error instanceof HttpException) {
+          throw error;
+        }
+        throw new HttpException(
+          'An error occurred while fetching the user',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      });
   }
 }

@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,6 +10,10 @@ import { FindManyOptions, Repository } from 'typeorm';
 import { Company } from './entities/company.entity';
 import { CreateCompanyInput } from './dto/create-company.input';
 import { UpdateCompanyInput } from './dto/update-company.input';
+import {
+  CommonCompanyResponse,
+  PaginatedCompanyResponse,
+} from './dto/company-response.dto';
 
 @Injectable()
 export class CompanyService {
@@ -16,30 +22,63 @@ export class CompanyService {
     private companyRepository: Repository<Company>,
   ) {}
 
-  findAll(
-    pageSize: number = 10,
-    pageNumber: number = 1,
-    searchQuery?: string,
-  ): Promise<Company[]> {
+  async findAll(
+    perPage: number,
+    page: number,
+  ): Promise<PaginatedCompanyResponse> {
     const options: FindManyOptions<Company> = {
-      take: pageSize,
-      skip: (pageNumber - 1) * pageSize,
+      take: perPage,
+      skip: (page - 1) * perPage,
+      order: { id: 'DESC' },
     };
-    return this.companyRepository.find(options);
+    const [data, totalRows] =
+      await this.companyRepository.findAndCount(options);
+    const totalPages = Math.ceil(totalRows / perPage);
+
+    return {
+      data,
+      totalRows,
+      totalPages,
+      currentPage: page,
+      statusCode: 200,
+      message: 'Companies fetched successfully',
+    };
   }
 
-  findOne(id: number): Promise<Company | null> {
-    return this.companyRepository.findOneBy({ id });
+  async findOne(id: number): Promise<CommonCompanyResponse> {
+    return await this.companyRepository
+      .findOneByOrFail({ id })
+      .then((data) => {
+        return {
+          data,
+          statusCode: 200,
+          message: 'Company fetched successfully',
+        };
+      })
+      .catch(() => {
+        throw new HttpException(
+          `Company with ID ${id} was not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      });
   }
 
-  create(createCompanyInput: CreateCompanyInput): Promise<Company> {
+  async create(
+    createCompanyInput: CreateCompanyInput,
+  ): Promise<CommonCompanyResponse> {
     const newCompany = this.companyRepository.create({
       ...createCompanyInput,
     });
-    return this.companyRepository.save(newCompany);
+    await this.companyRepository.save(newCompany);
+    return {
+      statusCode: 200,
+      message: 'Company created successfully',
+    };
   }
 
-  async update(updateCompanyInput: UpdateCompanyInput): Promise<Company> {
+  async update(
+    updateCompanyInput: UpdateCompanyInput,
+  ): Promise<CommonCompanyResponse> {
     const { id } = updateCompanyInput;
     const existingCompany = await this.companyRepository.findOneBy({ id });
 
@@ -49,25 +88,49 @@ export class CompanyService {
     existingCompany.name = updateCompanyInput.name;
     existingCompany.isActive = updateCompanyInput.isActive;
 
-    return await this.companyRepository.save(existingCompany);
+    await this.companyRepository.save(existingCompany);
+
+    return {
+      statusCode: 200,
+      message: 'Company updated successfully',
+    };
   }
 
-  async remove(id: number): Promise<string> {
-    const company = await this.companyRepository.findOne({
-      where: { id },
-      relations: ['bankAccounts'],
-    });
+  async remove(id: number): Promise<CommonCompanyResponse> {
+    return await this.companyRepository
+      .findOne({
+        where: { id },
+        relations: ['bankAccounts'],
+      })
+      .then(async (company) => {
+        if (!company) {
+          throw new HttpException(
+            `Company with ID ${id} was not found`,
+            HttpStatus.NOT_FOUND,
+          );
+        }
+        if (company?.bankAccounts && company.bankAccounts.length > 0) {
+          throw new HttpException(
+            `Company with ID ${id} has bank accounts cannot be deleted`,
+            HttpStatus.CONFLICT,
+          );
+        }
 
-    if (
-      !company ||
-      (company?.bankAccounts && company.bankAccounts.length > 0)
-    ) {
-      throw new ConflictException(
-        `Company with ID ${id} has bank accounts and cannot be deleted`,
-      );
-    }
-    await this.companyRepository.remove(company);
+        await this.companyRepository.remove(company);
 
-    return `Company with ID ${id} has been removed`;
+        return {
+          statusCode: 200,
+          message: 'Company deleted successfully',
+        };
+      })
+      .catch((error) => {
+        if (error instanceof HttpException) {
+          throw error;
+        }
+        throw new HttpException(
+          'An error occurred while deleting the Company',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      });
   }
 }

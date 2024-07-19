@@ -8,6 +8,10 @@ import { AuthGuard } from '../auth/auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles';
 import { UserRoles } from '../roles/entities/role.entity';
+import {
+  CommonExpenseSubCategoryResponse,
+  PaginatedExpenseSubCategoryResponse,
+} from './dto/expense-sub-category-response.dto';
 
 @Resolver(() => ExpenseSubCategory)
 @UseGuards(AuthGuard, RolesGuard)
@@ -15,41 +19,46 @@ import { UserRoles } from '../roles/entities/role.entity';
 export class ExpenseSubCategoryResolver {
   constructor(private expenseSubCategoryService: ExpenseSubCategoryService) {}
 
-  @Mutation(() => ExpenseSubCategory)
+  @Mutation(() => CommonExpenseSubCategoryResponse)
   createExpenseSubCategory(
     @Args('createExpenseSubCategoryInput')
     createExpenseSubCategoryInput: CreateExpenseSubCategoryInput,
-  ): Promise<ExpenseSubCategory> {
+  ): Promise<CommonExpenseSubCategoryResponse> {
     return this.expenseSubCategoryService.create(createExpenseSubCategoryInput);
   }
 
-  @Query(() => [ExpenseSubCategory], { name: 'expenseSubCategories' })
-  findAll(): Promise<ExpenseSubCategory[]> {
-    return this.expenseSubCategoryService.findAll();
+  @Query(() => PaginatedExpenseSubCategoryResponse, {
+    name: 'expenseSubCategories',
+  })
+  findAll(
+    @Args('perPage', { type: () => Int }) perPage: number,
+    @Args('page', { type: () => Int }) page: number,
+  ): Promise<PaginatedExpenseSubCategoryResponse> {
+    return this.expenseSubCategoryService.findAll(perPage, page);
   }
 
-  @Query(() => ExpenseSubCategory, { name: 'expenseSubCategory' })
+  @Query(() => CommonExpenseSubCategoryResponse, { name: 'expenseSubCategory' })
   findOne(
     @Args('id', { type: () => Int }) id: number,
-  ): Promise<ExpenseSubCategory> {
+  ): Promise<CommonExpenseSubCategoryResponse> {
     return this.expenseSubCategoryService.findOne(id);
   }
 
-  @Mutation(() => ExpenseSubCategory)
+  @Mutation(() => CommonExpenseSubCategoryResponse)
   updateExpenseSubCategory(
     @Args('id', { type: () => Int }) id: number,
     @Args('updateExpenseSubCategoryInput')
     updateExpenseSubCategoryInput: UpdateExpenseSubCategoryInput,
-  ): Promise<ExpenseSubCategory> {
+  ): Promise<CommonExpenseSubCategoryResponse> {
     return this.expenseSubCategoryService.update(
       id,
       updateExpenseSubCategoryInput,
     );
   }
-  @Mutation(() => ExpenseSubCategory)
+  @Mutation(() => CommonExpenseSubCategoryResponse)
   removeExpenseSubCategory(
     @Args('id', { type: () => Int }) id: number,
-  ): Promise<ExpenseSubCategory> {
+  ): Promise<CommonExpenseSubCategoryResponse> {
     return this.expenseSubCategoryService.remove(id);
   }
 }
