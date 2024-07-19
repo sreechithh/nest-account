@@ -10,7 +10,10 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles';
 import { UserRoles } from '../roles/entities/role.entity';
 import { CustomGraphQLValidationExceptionFilter } from '../common/validation/custom-validation-exception.filter';
-import { PaginatedUsersResponse } from './dto/paginated-users-response.dto';
+import {
+  CommonUsersResponse,
+  PaginatedUsersResponse,
+} from './dto/users-response.dto';
 
 @UseFilters(new CustomGraphQLValidationExceptionFilter())
 @Resolver(() => User)
@@ -18,12 +21,12 @@ import { PaginatedUsersResponse } from './dto/paginated-users-response.dto';
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
-  @Mutation(() => String)
+  @Mutation(() => CommonUsersResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   createUser(
     @CurrentUser() user: User,
     @Args('createUserInput') createUserInput: CreateUserInput,
-  ) {
+  ): Promise<CommonUsersResponse> {
     return this.usersService.create(user, createUserInput);
   }
 
@@ -48,24 +51,26 @@ export class UsersResolver {
     return this.usersService.findAll(perPage, page, isActive, role);
   }
 
-  @Query(() => User, { name: 'user' })
+  @Query(() => CommonUsersResponse, { name: 'user' })
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
-  findOne(@Args('id', { type: () => Int }) id: number): Promise<User | null> {
+  findOne(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<CommonUsersResponse> {
     return this.usersService.findOne({ where: { id }, relations: ['roles'] });
   }
 
-  @Mutation(() => String)
+  @Mutation(() => CommonUsersResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   updateUser(
     @CurrentUser() user: User,
     @Args('updateUserInput') updateUserInput: UpdateUserInput,
-  ) {
+  ): Promise<CommonUsersResponse> {
     return this.usersService.update(user, updateUserInput);
   }
 
-  @Mutation(() => User)
-  @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
-  removeUser(@Args('id', { type: () => Int }) id: number) {
-    return this.usersService.remove(id);
-  }
+  // @Mutation(() => User)
+  // @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
+  // removeUser(@Args('id', { type: () => Int }) id: number) {
+  //   return this.usersService.remove(id);
+  // }
 }

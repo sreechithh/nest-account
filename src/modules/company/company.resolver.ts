@@ -8,54 +8,57 @@ import { AuthGuard } from '../auth/auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles';
 import { UserRoles } from '../roles/entities/role.entity';
+import {
+  CommonCompanyResponse,
+  PaginatedCompanyResponse,
+} from './dto/company-response.dto';
 
 @Resolver(() => Company)
 @UseGuards(AuthGuard, RolesGuard)
 export class CompanyResolver {
   constructor(private readonly companyService: CompanyService) {}
 
-  @Query(() => [Company])
+  @Query(() => PaginatedCompanyResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   async companies(
     @Args('pageSize', { type: () => Int, defaultValue: 10 }) pageSize: number,
     @Args('pageNumber', { type: () => Int, defaultValue: 1 })
     pageNumber: number,
-  ): Promise<Company[]> {
+  ): Promise<PaginatedCompanyResponse> {
     return this.companyService.findAll(pageSize, pageNumber);
   }
 
-  @Query(() => Company)
+  @Query(() => CommonCompanyResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   async company(
     @Args('id', { type: () => Int }) id: number,
-  ): Promise<Company | null> {
+  ): Promise<CommonCompanyResponse> {
     return this.companyService.findOne(id);
   }
 
-  @Mutation(() => Company)
+  @Mutation(() => CommonCompanyResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   async createCompany(
     @Args('createCompanyInput', ValidationPipe)
     createCompanyInput: CreateCompanyInput,
-  ): Promise<Company> {
+  ): Promise<CommonCompanyResponse> {
     return this.companyService.create(createCompanyInput);
   }
 
-  @Mutation(() => Company)
+  @Mutation(() => CommonCompanyResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   async updateCompany(
     @Args('updateCompanyInput', ValidationPipe)
     updateCompanyInput: UpdateCompanyInput,
-  ): Promise<Company> {
+  ): Promise<CommonCompanyResponse> {
     return this.companyService.update(updateCompanyInput);
   }
 
-  @Mutation(() => String)
+  @Mutation(() => CommonCompanyResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   async deleteCompany(
     @Args('id', { type: () => Int }) id: number,
-  ): Promise<boolean> {
-    await this.companyService.remove(id);
-    return true;
+  ): Promise<CommonCompanyResponse> {
+    return await this.companyService.remove(id);
   }
 }

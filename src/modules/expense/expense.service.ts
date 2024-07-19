@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import {
   DataSource,
@@ -20,6 +25,10 @@ import { Role, UserRoles } from '../roles/entities/role.entity';
 import { BankTransaction } from '../bank-transactions/entities/bank-transaction.entity';
 import { BankAccount } from '../bank-account/entities/bank-account.entity';
 import { Company } from '../company/entities/company.entity';
+import {
+  CommonExpenseResponse,
+  PaginatedExpenseResponse,
+} from './dto/expense-response.dto';
 
 @Injectable()
 export class ExpenseService {
@@ -46,7 +55,7 @@ export class ExpenseService {
   async create(
     createExpenseInput: CreateExpenseInput,
     createdBy: number,
-  ): Promise<Expense> {
+  ): Promise<CommonExpenseResponse> {
     return await this.dataSource.transaction(async (manager) => {
       const {
         expenseCategoryId,
@@ -59,36 +68,21 @@ export class ExpenseService {
         ...expenseData
       } = createExpenseInput;
 
-      const expenseCategory = await manager.findOne(ExpenseCategory, {
-        where: { id: expenseCategoryId },
-      });
-      if (!expenseCategory) {
-        throw new NotFoundException(
-          `ExpenseCategory with ID ${expenseCategoryId} not found`,
+      const [expenseCategory, expenseSubCategory, company, bank] =
+        await this.checkExpenseParentExists(
+          expenseCategoryId,
+          expenseSubCategoryId,
+          companyId,
+          bankId,
         );
-      }
-      const company = await manager.findOne(Company, {
-        where: { id: companyId },
-      });
-      if (!company) {
-        throw new NotFoundException(`Company with ID ${companyId} not found`);
-      }
-
-      const expenseSubCategory = await manager.findOneOrFail(
-        ExpenseSubCategory,
-        {
-          where: { id: expenseSubCategoryId },
-        },
-      );
-      const bank = await manager.findOneOrFail(BankAccount, {
-        where: { id: bankId },
-      });
 
       const finalStatus = isPaymentRequest
         ? ExpenseStatus.PENDING
         : ExpenseStatus.PAID;
 
       const paidAt = finalStatus === ExpenseStatus.PAID ? new Date() : null;
+      const checkPaidDate =
+        finalStatus === ExpenseStatus.PAID ? paidDate : null;
 
       let bankTransactionId: number | null = null;
 
@@ -124,11 +118,11 @@ export class ExpenseService {
         createdBy,
         updatedBy: createdBy,
         paidAt,
-        paidDate,
+        paidDate: checkPaidDate,
         bankTransactionId: bankTransactionId || undefined,
       });
 
-      let savedExpense = await manager.save(Expense, expense);
+      const savedExpense = await manager.save(Expense, expense);
 
       if (expenseCategory.name === 'Staff' && employeeId) {
         const employee = await manager.findOneOrFail(User, {
@@ -146,68 +140,97 @@ export class ExpenseService {
           });
           await manager.save(EmployeeExpense, employeeExpense);
 
-          const newExpense = await manager.findOne(Expense, {
-            where: { id: savedExpense.id },
-            relations: [
-              'expenseCategory',
-              'expenseSubCategory',
-              'bankTransaction',
-              'company',
-              'employeeExpense',
-              'employeeExpense.user',
-            ],
-          });
-          if (newExpense) {
-            savedExpense = newExpense;
-          }
+          // const newExpense = await manager.findOne(Expense, {
+          //   where: { id: savedExpense.id },
+          //   relations: [
+          //     'expenseCategory',
+          //     'expenseSubCategory',
+          //     'bankTransaction',
+          //     'company',
+          //     'employeeExpense',
+          //     'employeeExpense.user',
+          //   ],
+          // });
+          // if (newExpense) {
+          //   savedExpense = newExpense;
+          // }
         }
       }
 
-      return savedExpense;
+      return {
+        statusCode: 201,
+        message: 'Expense created successfully',
+      };
     });
   }
 
   async findAll(
-    pageSize: number = 10,
-    pageNumber: number = 1,
-  ): Promise<Expense[]> {
+    perPage: number,
+    page: number,
+  ): Promise<PaginatedExpenseResponse> {
     const options: FindManyOptions<Expense> = {
-      take: pageSize,
-      skip: (pageNumber - 1) * pageSize,
+      take: perPage,
+      skip: (page - 1) * perPage,
       relations: [
         'expenseCategory',
         'expenseSubCategory',
         'employeeExpense',
         'employeeExpense.user',
         'bankTransaction',
+        'bankTransaction.bankAccount',
         'company',
       ],
       order: { id: 'DESC' },
     };
-    const expenses = await this.expenseRepository.find(options);
 
-    return expenses;
+    const [data, totalRows] =
+      await this.expenseRepository.findAndCount(options);
+    const totalPages = Math.ceil(totalRows / perPage);
+
+    return {
+      data,
+      totalRows,
+      totalPages,
+      currentPage: page,
+      statusCode: 200,
+      message: 'Expenses fetched successfully',
+    };
   }
 
-  async findOne(id: number): Promise<Expense> {
-    return await this.expenseRepository.findOneOrFail({
-      where: { id },
-      relations: [
-        'expenseCategory',
-        'expenseSubCategory',
-        'employeeExpense',
-        'employeeExpense.user',
-        'bankTransaction',
-        'company',
-      ],
-    });
+  async findOne(id: number): Promise<CommonExpenseResponse> {
+    return await this.expenseRepository
+      .findOneOrFail({
+        where: { id },
+        relations: [
+          'expenseCategory',
+          'expenseSubCategory',
+          'employeeExpense',
+          'employeeExpense.user',
+          'bankTransaction',
+          'bankTransaction.bankAccount',
+          'company',
+        ],
+      })
+      .then((data) => {
+        return {
+          data,
+          statusCode: 200,
+          message: 'Expense fetched successfully',
+        };
+      })
+      .catch(() => {
+        throw new HttpException(
+          `Expense with ID ${id} was not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      });
   }
 
   async update(
     id: number,
     updateExpenseInput: UpdateExpenseInput,
     updatedBy: number,
-  ): Promise<Expense> {
+  ): Promise<CommonExpenseResponse> {
     return await this.dataSource.transaction(async (manager) => {
       const {
         companyId,
@@ -237,49 +260,23 @@ export class ExpenseService {
           'Expense Approved or Rejected by the admin cannot be updated',
         );
       }
+      const [expenseCategory, expenseSubCategory, company, bank] =
+        await this.checkExpenseParentExists(
+          expenseCategoryId,
+          expenseSubCategoryId,
+          companyId,
+          bankId,
+        );
 
       const originalCategoryId = expense.expenseCategoryId;
       const isCategoryChanged = originalCategoryId !== expenseCategoryId;
-
-      const expenseCategory = await manager.findOne(ExpenseCategory, {
-        where: { id: expenseCategoryId },
-      });
-      if (!expenseCategory) {
-        throw new NotFoundException(
-          `ExpenseCategory with ID ${expenseCategoryId} Not Found,`,
-        );
-      }
-      const company = await manager.findOne(Company, {
-        where: { id: companyId },
-      });
-      if (!company) {
-        throw new NotFoundException(`Company with ID ${companyId} Not Found`);
-      }
-
-      const expenseSubCategory = await manager.findOne(ExpenseSubCategory, {
-        where: { id: expenseSubCategoryId },
-      });
-      if (!expenseSubCategory) {
-        throw new NotFoundException(
-          `ExpenseSubCategory with ID ${expenseSubCategoryId} Not Found`,
-        );
-      }
-
-      const bank = bankId
-        ? await this.bankAccountRepository.findOne({
-            where: { id: bankId },
-          })
-        : null;
-      if (bankId && !bank) {
-        throw new NotFoundException(`Bank Account with ID ${bankId} not found`);
-      }
-
-      if (expense.bankTransaction) {
+      if (!bankId) {
         await manager.remove(BankTransaction, expense.bankTransaction);
       }
-      if (bank) {
+      if (bank && expense.bankTransaction) {
+        await manager.remove(BankTransaction, expense.bankTransaction);
         const newBankTransaction = this.bankTransactionRepository.create({
-          bankId: bank.id,
+          bankId,
           amount: expenseData.amount,
           comment: expenseData.comments || 'Updated expense payment',
           type: 'debit',
@@ -289,6 +286,20 @@ export class ExpenseService {
         await this.bankTransactionRepository.save(newBankTransaction);
         expense.bankTransaction = newBankTransaction;
       }
+
+      if (!expense.bankTransaction) {
+        const newBankTransaction = this.bankTransactionRepository.create({
+          bankId,
+          amount: expenseData.amount,
+          comment: expenseData.comments || 'Updated expense payment',
+          type: 'debit',
+          createdBy: updatedBy,
+        });
+
+        await this.bankTransactionRepository.save(newBankTransaction);
+        expense.bankTransaction = newBankTransaction;
+      }
+
       Object.assign(expense, {
         ...expenseData,
         company,
@@ -301,10 +312,13 @@ export class ExpenseService {
 
       const updatedExpense = await manager.save(Expense, expense);
 
-      if (isCategoryChanged && expense.employeeExpense) {
+      if (
+        isCategoryChanged &&
+        expense.employeeExpense &&
+        expense.employeeExpense.id != employeeId
+      ) {
         await manager.remove(EmployeeExpense, expense.employeeExpense);
       }
-
       if (expenseCategory.name === 'Staff' && employeeId) {
         const employee = await manager.findOne(User, {
           where: { id: employeeId },
@@ -332,29 +346,30 @@ export class ExpenseService {
         }
       }
 
-      const updatedExpenseWithRelations = await manager.findOne(Expense, {
-        where: { id: updatedExpense.id },
-        relations: [
-          'expenseCategory',
-          'expenseSubCategory',
-          'employeeExpense',
-          'employeeExpense.user',
-          'bankTransaction',
-          'company',
-        ],
-      });
+      // const updatedExpenseWithRelations = await manager.findOne(Expense, {
+      //   where: { id: updatedExpense.id },
+      //   relations: [
+      //     'expenseCategory',
+      //     'expenseSubCategory',
+      //     'employeeExpense',
+      //     'employeeExpense.user',
+      //     'bankTransaction',
+      //     'company',
+      //   ],
+      // });
+      //
+      // if (!updatedExpenseWithRelations) {
+      //   throw new Error(`Failed to retrieve updated expense with ID ${id}.`);
+      // }
 
-      if (!updatedExpenseWithRelations) {
-        throw new Error(`Failed to retrieve updated expense with ID ${id}.`);
-      }
-
-      return updatedExpenseWithRelations;
+      return {
+        statusCode: 200,
+        message: 'Expense updated successfully',
+      };
     });
   }
 
-  async remove(
-    id: number,
-  ): Promise<{ statusCode: number; message: string; data: Expense }> {
+  async remove(id: number): Promise<CommonExpenseResponse> {
     return await this.dataSource.transaction(async (manager) => {
       const expense = await manager.findOne(Expense, {
         where: { id },
@@ -378,11 +393,11 @@ export class ExpenseService {
       return {
         statusCode: 200,
         message: 'Expense deleted successfully',
-        data: expense,
+        // data: expense,
       };
     });
   }
-  async approveExpenses(ids: number[]): Promise<boolean> {
+  async approveExpenses(ids: number[]): Promise<CommonExpenseResponse> {
     return await this.dataSource.transaction(async (manager) => {
       const expenses = await manager.find(Expense, {
         where: { id: In(ids), status: ExpenseStatus.PENDING },
@@ -400,11 +415,14 @@ export class ExpenseService {
       }
 
       await manager.save(Expense, expenses);
-      return true;
+      return {
+        statusCode: 200,
+        message: 'Expense approved successfully',
+      };
     });
   }
 
-  async rejectExpenses(ids: number[]): Promise<boolean> {
+  async rejectExpenses(ids: number[]): Promise<CommonExpenseResponse> {
     return await this.dataSource.transaction(async (manager) => {
       const expenses = await manager.find(Expense, {
         where: { id: In(ids), status: ExpenseStatus.PENDING },
@@ -422,10 +440,16 @@ export class ExpenseService {
       }
 
       await manager.save(Expense, expenses);
-      return true;
+      return {
+        statusCode: 200,
+        message: 'Expense rejected successfully',
+      };
     });
   }
-  async paidExpenses(ids: number[], updatedBy: number): Promise<boolean> {
+  async paidExpenses(
+    ids: number[],
+    updatedBy: number,
+  ): Promise<CommonExpenseResponse> {
     return await this.dataSource.transaction(async (manager) => {
       const expenses = await manager.find(Expense, {
         where: { id: In(ids), status: ExpenseStatus.APPROVED },
@@ -445,7 +469,10 @@ export class ExpenseService {
       }
 
       await manager.save(Expense, expenses);
-      return true;
+      return {
+        statusCode: 200,
+        message: 'Expense moved to paid successfully',
+      };
     });
   }
   async calculateExpense(
@@ -467,10 +494,17 @@ export class ExpenseService {
       query.andWhere('EXTRACT(YEAR FROM expense.paidAt) = :year', { year });
     }
     if (startDate !== null && endDate !== null) {
-      query.andWhere('expense.paidAt BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      });
+      // query.andWhere('expense.paidAt BETWEEN :startDate AND :endDate', {
+      //   startDate,
+      //   endDate,
+      // });
+      query.andWhere(
+        'expense.paidAt >= :startDate AND expense.paidAt <= :endDate',
+        {
+          startDate,
+          endDate,
+        },
+      );
     }
 
     if (companyId !== null) {
@@ -479,5 +513,54 @@ export class ExpenseService {
 
     const result = await query.getRawOne();
     return result?.total || 0;
+  }
+  private async checkExpenseParentExists(
+    expenseCategoryId: number | undefined,
+    expenseSubCategoryId: number | undefined,
+    companyId: number | undefined,
+    bankId: number | undefined,
+  ) {
+    return await Promise.all([
+      this.expenseCategoryRepository
+        .findOneByOrFail({
+          id: expenseCategoryId,
+        })
+        .catch(() => {
+          throw new HttpException(
+            `Expense category with ID ${expenseCategoryId} was not found`,
+            HttpStatus.NOT_FOUND,
+          );
+        }),
+      this.expenseSubCategoryRepository
+        .findOneByOrFail({
+          id: expenseSubCategoryId,
+        })
+        .catch(() => {
+          throw new HttpException(
+            `Expense sub-category with ID ${expenseSubCategoryId} was not found`,
+            HttpStatus.NOT_FOUND,
+          );
+        }),
+      this.companyRepository
+        .findOneByOrFail({
+          id: companyId,
+        })
+        .catch(() => {
+          throw new HttpException(
+            `Company with ID ${companyId} was not found`,
+            HttpStatus.NOT_FOUND,
+          );
+        }),
+      bankId
+        ? this.bankAccountRepository
+            .findOneByOrFail({ id: bankId })
+            .catch(() => {
+              throw new HttpException(
+                `Bank with ID ${bankId} was not found`,
+                HttpStatus.NOT_FOUND,
+              );
+            })
+        : Promise.resolve(null),
+    ]);
   }
 }

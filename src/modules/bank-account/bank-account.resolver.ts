@@ -10,50 +10,59 @@ import { Roles } from '../auth/decorators/roles';
 import { UserRoles } from '../roles/entities/role.entity';
 import { CurrentUser } from '../auth/decorators/loggin.user';
 import { User } from '../users/entities/user.entity';
+import {
+  CommonBankAccountResponse,
+  PaginatedBankAccountResponse,
+} from './dto/bank-account-response.dto';
 
 @Resolver(() => BankAccount)
 @UseGuards(AuthGuard, RolesGuard)
 export class BankAccountResolver {
   constructor(private readonly bankAccountService: BankAccountService) {}
 
-  @Mutation(() => BankAccount)
+  @Mutation(() => CommonBankAccountResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   createBankAccount(
     @CurrentUser() user: User,
     @Args('createBankAccountInput')
     createBankAccountInput: CreateBankAccountInput,
-  ): Promise<BankAccount> {
+  ): Promise<CommonBankAccountResponse> {
     return this.bankAccountService.create(user, createBankAccountInput);
   }
 
-  @Query(() => [BankAccount], { name: 'bankAccounts' })
+  @Query(() => PaginatedBankAccountResponse, { name: 'bankAccounts' })
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
-  findAll() {
-    return this.bankAccountService.findAll();
+  findAll(
+    @Args('perPage', { type: () => Int }) perPage: number,
+    @Args('page', { type: () => Int }) page: number,
+  ): Promise<PaginatedBankAccountResponse> {
+    return this.bankAccountService.findAll(perPage, page);
   }
 
-  @Query(() => BankAccount, { name: 'bankAccount' })
+  @Query(() => CommonBankAccountResponse, { name: 'bankAccount' })
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
-  findOne(@Args('id', { type: () => Int }) id: number) {
+  findOne(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<CommonBankAccountResponse> {
     return this.bankAccountService.findOne(id);
   }
 
-  @Mutation(() => BankAccount)
+  @Mutation(() => CommonBankAccountResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
   updateBankAccount(
     @CurrentUser() user: User,
     @Args('updateBankAccountInput')
     updateBankAccountInput: UpdateBankAccountInput,
-  ) {
+  ): Promise<CommonBankAccountResponse> {
     const hi = this.bankAccountService.update(user, updateBankAccountInput);
-    console.log(hi);
     return hi;
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => CommonBankAccountResponse)
   @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
-  async removeBankAccount(@Args('id', { type: () => Int }) id: number) {
-    await this.bankAccountService.remove(id);
-    return true;
+  async removeBankAccount(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<CommonBankAccountResponse> {
+    return await this.bankAccountService.remove(id);
   }
 }
