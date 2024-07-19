@@ -28,6 +28,7 @@ export class UsersService {
     @InjectRepository(Company)
     private companyRepository: Repository<Company>,
   ) {}
+
   async create(user: User, createUserInput: CreateUserInput) {
     const {
       name,
@@ -195,7 +196,9 @@ export class UsersService {
     }
 
     if (name) userToUpdate.name = name;
+
     if (email) userToUpdate.email = email;
+
     if (password) userToUpdate.password = await bcrypt.hash(password, 10);
     userToUpdate.roles = [role];
     userToUpdate.updatedBy = loginUser;
