@@ -119,6 +119,7 @@ export class ExpenseSubCategoryService {
 
     Object.assign(expenseSubCategory, updateData);
     await this.expenseSubCategoryRepository.save(expenseSubCategory);
+
     return {
       statusCode: 200,
       message: 'Expense updated successfully',

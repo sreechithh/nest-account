@@ -263,9 +263,11 @@ export class ExpenseService {
 
       const originalCategoryId = expense.expenseCategoryId;
       const isCategoryChanged = originalCategoryId !== expenseCategoryId;
+
       if (!bankId) {
         await manager.remove(BankTransaction, expense.bankTransaction);
       }
+
       if (bank && expense.bankTransaction) {
         await manager.remove(BankTransaction, expense.bankTransaction);
         const newBankTransaction = this.bankTransactionRepository.create({
@@ -312,6 +314,7 @@ export class ExpenseService {
       ) {
         await manager.remove(EmployeeExpense, expense.employeeExpense);
       }
+
       if (expenseCategory.name === 'Staff' && employeeId) {
         const employee = await manager.findOne(User, {
           where: { id: employeeId },
@@ -408,6 +411,7 @@ export class ExpenseService {
       }
 
       await manager.save(Expense, expenses);
+
       return {
         statusCode: 200,
         message: 'Expense approved successfully',
@@ -433,6 +437,7 @@ export class ExpenseService {
       }
 
       await manager.save(Expense, expenses);
+
       return {
         statusCode: 200,
         message: 'Expense rejected successfully',
@@ -462,6 +467,7 @@ export class ExpenseService {
       }
 
       await manager.save(Expense, expenses);
+
       return {
         statusCode: 200,
         message: 'Expense moved to paid successfully',
@@ -486,6 +492,7 @@ export class ExpenseService {
     if (year !== null) {
       query.andWhere('EXTRACT(YEAR FROM expense.paidAt) = :year', { year });
     }
+
     if (startDate !== null && endDate !== null) {
       // query.andWhere('expense.paidAt BETWEEN :startDate AND :endDate', {
       //   startDate,
@@ -505,6 +512,7 @@ export class ExpenseService {
     }
 
     const result = await query.getRawOne();
+
     return result?.total || 0;
   }
   private async checkExpenseParentExists(

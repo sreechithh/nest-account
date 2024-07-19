@@ -15,10 +15,12 @@ export class SeedService {
 
   async createDefaultRoles() {
     const roles = [UserRoles.ADMIN, UserRoles.ACCOUNTANT, UserRoles.EMPLOYEE];
+
     for (const roleName of roles) {
       const existingRole = await this.roleRepository.findOne({
         where: { name: roleName },
       });
+
       if (!existingRole) {
         const newRole = this.roleRepository.create({ name: roleName });
         await this.roleRepository.save(newRole);

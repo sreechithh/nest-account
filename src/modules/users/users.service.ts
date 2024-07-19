@@ -94,6 +94,7 @@ export class UsersService {
       });
       await this.staffRepository.save(staff);
     }
+
     return {
       statusCode: 201,
       message: 'Users created successfully',
@@ -251,6 +252,7 @@ export class UsersService {
         if (!user) {
           throw new HttpException('User not found', HttpStatus.NOT_FOUND);
         }
+
         return {
           statusCode: 200,
           message: 'User fetched successfully',

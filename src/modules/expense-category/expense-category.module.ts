@@ -10,6 +10,12 @@ import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ExpenseCategory, ExpenseSubCategory])],
-  providers: [ExpenseCategoryService, ExpenseCategoryResolver, ExpenseSubCategoryService, ExpenseSubCategoryResolver, JwtService],
+  providers: [
+    ExpenseCategoryService,
+    ExpenseCategoryResolver,
+    ExpenseSubCategoryService,
+    ExpenseSubCategoryResolver,
+    JwtService,
+  ],
 })
 export class ExpenseCategoryModule {}

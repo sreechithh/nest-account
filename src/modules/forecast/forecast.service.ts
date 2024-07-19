@@ -1,12 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  FindManyOptions,
-  Raw,
-  Repository,
-  ObjectLiteral,
-  FindOptionsWhere,
-} from 'typeorm';
+import { FindManyOptions, Raw, Repository } from 'typeorm';
 import { Forecast } from './entities/forecast.entity';
 import { User } from '../users/entities/user.entity';
 import { ExpenseSubCategory } from '../expense-sub-category/entities/expense-sub-category.entity';
@@ -98,6 +92,7 @@ export class ForecastService {
     }
 
     await this.forecastRepository.save(forecasts);
+
     return {
       statusCode: 201,
       message: 'Forecast created successfully',
@@ -228,6 +223,7 @@ export class ForecastService {
         'company',
       ],
     });
+
     return {
       data,
       statusCode: 200,
@@ -290,6 +286,7 @@ export class ForecastService {
     });
 
     await this.forecastRepository.save(forecasts);
+
     return {
       statusCode: 200,
       message: 'Forecast updated successfully',
@@ -303,6 +300,7 @@ export class ForecastService {
       await this.forecastRepository.delete({
         relatedForecastId: forecast.relatedForecastId,
       });
+
       return {
         statusCode: 200,
         message: `ID with #${id} has been removed from forecast with all related forecasts`,
@@ -377,6 +375,7 @@ export class ForecastService {
         { month },
       );
     }
+
     if (companyId !== null) {
       conditions.company = { id: companyId };
     }

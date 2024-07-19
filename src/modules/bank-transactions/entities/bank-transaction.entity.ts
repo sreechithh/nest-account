@@ -17,7 +17,6 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { BankAccount } from '../../bank-account/entities/bank-account.entity';
 import { Expense } from '../../expense/entities/expense.entity';
-import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export enum TransactionType {
   CREDIT = 'credit',

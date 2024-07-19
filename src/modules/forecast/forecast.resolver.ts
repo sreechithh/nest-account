@@ -37,7 +37,7 @@ export class ForecastResolver {
     @Args('companyId', { type: () => Int, defaultValue: null })
     companyId: number | null,
   ): Promise<PaginatedForecastResponse> {
-    return this.forecastService.findAll(perPage, page, (companyId = null));
+    return this.forecastService.findAll(perPage, page, companyId);
   }
 
   @Query(() => CommonForecastResponse, { name: 'forecast' })

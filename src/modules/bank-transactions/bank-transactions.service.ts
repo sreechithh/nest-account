@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { CreateBankTransactionInput } from './dto/create-bank-transaction.input';
 import { User } from '../users/entities/user.entity';
 import { BankTransaction } from './entities/bank-transaction.entity';
@@ -15,8 +10,6 @@ import {
   CommonBankTransactionResponse,
   PaginatedBankTransactionResponse,
 } from './dto/bank-transaction-response.dto';
-import { CommonExpenseCategoryResponse } from '../expense-category/dto/expense-category-response.dto';
-import { CommonBankAccountResponse } from '../bank-account/dto/bank-account-response.dto';
 
 @Injectable()
 export class BankTransactionsService {
@@ -43,6 +36,7 @@ export class BankTransactionsService {
           createdBy: user.id,
           comment,
         });
+
         return this.bankTransactionRepository.save(bankTransaction);
       })
       .then((savedBankTransaction) => {
@@ -86,6 +80,7 @@ export class BankTransactionsService {
         const netBalance = await this.bankAccountService.getBankBalance(
           transaction.bankAccount.id,
         );
+
         return { ...transaction, bankBalance: netBalance };
       }),
     );

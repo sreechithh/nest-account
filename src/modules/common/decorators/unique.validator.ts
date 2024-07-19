@@ -31,6 +31,7 @@ export class IsUniqueConstraint implements ValidatorConstraintInterface {
       queryBuilder = queryBuilder.andWhere('entity.id != :id', { id });
     }
     const count = await queryBuilder.getCount();
+
     return count === 0;
   }
 

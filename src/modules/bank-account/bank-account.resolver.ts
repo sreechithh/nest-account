@@ -55,6 +55,7 @@ export class BankAccountResolver {
     updateBankAccountInput: UpdateBankAccountInput,
   ): Promise<CommonBankAccountResponse> {
     const hi = this.bankAccountService.update(user, updateBankAccountInput);
+
     return hi;
   }
 
