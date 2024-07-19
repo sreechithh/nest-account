@@ -67,10 +67,4 @@ export class UsersResolver {
   ): Promise<CommonUsersResponse> {
     return this.usersService.update(user, updateUserInput);
   }
-
-  // @Mutation(() => User)
-  // @Roles(UserRoles.ADMIN, UserRoles.ACCOUNTANT)
-  // removeUser(@Args('id', { type: () => Int }) id: number) {
-  //   return this.usersService.remove(id);
-  // }
 }
