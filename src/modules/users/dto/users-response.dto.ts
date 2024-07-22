@@ -10,7 +10,7 @@ export class CommonUsersResponse {
   message: string;
 
   @Field(() => User, { nullable: true })
-  data?: User;
+  data?: User | null;
 }
 @ObjectType()
 export class PaginatedUsersResponse {

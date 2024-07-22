@@ -7,9 +7,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Staff } from '../staff/entities/staff.entity';
 import { Company } from '../company/entities/company.entity';
+import { Forecast } from '../forecast/entities/forecast.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Role, Staff, Company])],
+  imports: [TypeOrmModule.forFeature([User, Role, Staff, Company, Forecast])],
   providers: [UsersService, UsersResolver, JwtService],
   exports: [UsersService],
 })

@@ -140,7 +140,22 @@ type User {
   roles: [Role!]!
   transactions: [BankTransaction!]
   staff: Staff
-  employeeExpenses: [EmployeeExpense!]!
+  employeeExpenses: [EmployeeExpense!]
+}
+
+type Forecast {
+  id: ID!
+  amount: Float!
+  comment: String!
+  payDate: Date
+  expenseCategory: ExpenseCategory!
+  expenseSubCategory: ExpenseSubCategory!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User!
+  updatedBy: User!
+  staff: User
+  company: Company!
 }
 
 type CommonUsersResponse {
@@ -250,21 +265,6 @@ type PaginatedExpenseResponse {
   currentPage: Int!
   statusCode: Int!
   message: String!
-}
-
-type Forecast {
-  id: ID!
-  amount: Float!
-  comment: String!
-  payDate: Date
-  expenseCategory: ExpenseCategory!
-  expenseSubCategory: ExpenseSubCategory!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  createdBy: User!
-  updatedBy: User!
-  staff: User
-  company: Company!
 }
 
 type CommonForecastResponse {

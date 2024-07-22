@@ -76,9 +76,9 @@ export class User {
   @OneToOne(() => Staff, (staff) => staff.user, { nullable: true })
   staff?: Staff | null;
 
-  @Field(() => [EmployeeExpense])
+  @Field(() => [EmployeeExpense], { nullable: true })
   @OneToMany(() => EmployeeExpense, (employeeExpense) => employeeExpense.user)
-  employeeExpenses: EmployeeExpense[];
+  employeeExpenses?: EmployeeExpense[] | null;
 
   async hashPassword() {
     this.password = await bcrypt.hash(this.password, 10);

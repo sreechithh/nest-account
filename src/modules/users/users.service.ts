@@ -18,6 +18,7 @@ import {
   CommonUsersResponse,
   PaginatedUsersResponse,
 } from './dto/users-response.dto';
+import { Forecast } from '../forecast/entities/forecast.entity';
 
 @Injectable()
 export class UsersService {
@@ -30,6 +31,8 @@ export class UsersService {
     private staffRepository: Repository<Staff>,
     @InjectRepository(Company)
     private companyRepository: Repository<Company>,
+    @InjectRepository(Forecast)
+    private forecastRepository: Repository<Forecast>,
   ) {}
 
   async create(
@@ -219,11 +222,19 @@ export class UsersService {
     userToUpdate.isActive = isActive;
     const updatedUser = await this.usersRepository.save(userToUpdate);
 
+    if (!isActive) {
+      const forecast = await this.forecastRepository.findBy({
+        staff: { id: updatedUser.id },
+      });
+      console.log(forecast);
+      forecast && (await this.forecastRepository.remove(forecast));
+    }
+
     if (!updatedUser) {
       throw new NotFoundException('User not found after update');
     }
     let staff = await this.staffRepository.findOneBy({
-      user: { id: updatedUser.id } as User,
+      user: { id: updatedUser.id },
     });
 
     if (staff) {
